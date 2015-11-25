@@ -396,6 +396,7 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 	m_subtitle_sync_timer = eTimer::create(eApp);
 	m_streamingsrc_timeout = 0;
 	m_stream_tags = 0;
+	m_bitrate = 0;
 	m_currentAudioStream = -1;
 	m_currentSubtitleStream = -1;
 	m_cachedSubtitleStream = 0; /* report the first subtitle stream to be 'cached'. TODO: use an actual cache. */
@@ -410,7 +411,6 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 	m_cuesheet_loaded = false; /* cuesheet CVR */
 #if GST_VERSION_MAJOR >= 1
 	m_use_chapter_entries = false; /* TOC chapter support CVR */
-	m_user_paused = false; /* CVR */
 	m_last_seek_pos = 0; /* CVR last seek position */
 #endif
 	m_extra_headers = "";
@@ -429,7 +429,17 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 	m_subtitles_paused = false;
 	// eDebug("eServiceMP3::construct!");
 
-	const char *filename = m_ref.path.c_str();
+	const char *filename;
+	std::string filename_str;
+	size_t pos = m_ref.path.find('#');
+	if (pos != std::string::npos && m_ref.path.compare(0, 4, "http") == 0)
+	{
+		filename_str = m_ref.path.substr(0, pos);
+		filename = filename_str.c_str();
+		m_extra_headers = m_ref.path.substr(pos + 1);
+	}
+	else
+		filename = m_ref.path.c_str();
 	const char *ext = strrchr(filename, '.');
 	if (!ext)
 		ext = filename + strlen(filename);
@@ -505,7 +515,6 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 		}
 		if (m_useragent.empty())
 			m_useragent = "Enigma2 Mediaplayer";
-		m_extra_headers = eConfigManager::getConfigValue("config.mediaplayer.extraHeaders");
 		if ( m_ref.getData(7) & BUFFERING_ENABLED )
 		{
 			m_use_prefillbuffer = true;
@@ -568,7 +577,7 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 				flags |= GST_PLAY_FLAG_DOWNLOAD;
 				g_signal_connect(G_OBJECT(m_gst_playbin), "element-added", G_CALLBACK(handleElementAdded), this);
 				/* limit file size */
-				g_object_set(m_gst_playbin, "ring-buffer-max-size", (guint64)(8LL * 1024LL * 1024LL), NULL);
+				g_object_set(m_gst_playbin, "ring-buffer-max-size", (guint64)(20LL * 1024LL * 1024LL), NULL);
 			}
 			/*
 			 * regardless whether or not we configured a progressive download file, use a buffer as well
@@ -735,15 +744,8 @@ RESULT eServiceMP3::start()
 	if (m_gst_playbin)
 	{
 		// eDebug("eServiceMP3::starting pipeline");
-#if GST_VERSION_MAJOR < 1
-		gst_element_set_state (m_gst_playbin, GST_STATE_PLAYING);
-#else
 		gst_element_set_state (m_gst_playbin, GST_STATE_PAUSED);
-#endif
-		updateEpgCacheNowNext();
 	}
-
-	m_event(this, evStart);
 
 	return 0;
 }
@@ -751,6 +753,7 @@ RESULT eServiceMP3::start()
 void eServiceMP3::sourceTimeout()
 {
 	eDebug("eServiceMP3::http source timeout! issuing eof...");
+	stop();
 	m_event((iPlayableService*)this, evEOF);
 }
 
@@ -762,8 +765,21 @@ RESULT eServiceMP3::stop()
 		return -1;
 
 	eDebug("eServiceMP3::stop %s", m_ref.path.c_str());
-	gst_element_set_state(m_gst_playbin, GST_STATE_NULL);
 	m_state = stStopped;
+	
+       GstStateChangeReturn ret;
+       GstState state, pending;
+       /* make sure that last state change was successfull */
+       ret = gst_element_get_state(m_gst_playbin, &state, &pending, GST_CLOCK_TIME_NONE);
+       eDebug("[eServiceMP3] stop state:%s pending:%s ret:%s",
+               gst_element_state_get_name(state),
+               gst_element_state_get_name(pending),
+               gst_element_state_change_return_get_name(ret));
+
+       ret = gst_element_set_state(m_gst_playbin, GST_STATE_NULL);
+       if (ret != GST_STATE_CHANGE_SUCCESS)
+               eDebug("[eServiceMP3] stop GST_STATE_NULL failure");
+
 	saveCuesheet();
 	m_subtitles_paused = false;
 	m_nownext_timer->stop();
@@ -806,6 +822,7 @@ RESULT eServiceMP3::pause()
 
 	m_subtitles_paused = true;
 	m_subtitle_sync_timer->start(1, true);
+	eDebug("[eServiceMP3] pause");
 	trickSeek(0.0);
 
 	return 0;
@@ -818,6 +835,15 @@ RESULT eServiceMP3::unpause()
 
 	m_subtitles_paused = false;
 	m_subtitle_sync_timer->start(1, true);
+	
+	/* no need to unpase if we are not paused already */
+	if (m_currentTrickRatio == 1.0 && !m_paused)
+	{
+		eDebug("[eServiceMP3] trickSeek no need to unpause!");
+		return 0;
+	}
+
+	eDebug("[eServiceMP3] unpause");
 	trickSeek(1.0);
 
 	return 0;
@@ -913,6 +939,62 @@ RESULT eServiceMP3::trickSeek(gdouble ratio)
 		return 0;
 	}
 
+#if GST_VERSION_MAJOR >= 1
+	bool unpause = (m_currentTrickRatio == 1.0 && ratio == 1.0);
+	if (unpause)
+	{
+		GstElement *source = NULL;
+		GstElementFactory *factory = NULL;
+		const gchar *name = NULL;
+		g_object_get (G_OBJECT (m_gst_playbin), "source", &source, NULL);
+		if (!source)
+		{
+			eDebugNoNewLineStart("[eServiceMP3] trickSeek - cannot get source");
+			goto seek_unpause;
+		}
+		factory = gst_element_get_factory(source);
+		g_object_unref(source);
+		if (!factory)
+		{
+			eDebugNoNewLineStart("[eServiceMP3] trickSeek - cannot get source factory");
+			goto seek_unpause;
+		}
+		name = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory));
+		if (!name)
+		{
+			eDebugNoNewLineStart("[eServiceMP3] trickSeek - cannot get source name");
+			goto seek_unpause;
+		}
+		/*
+		 * We know that filesrc and souphttpsrc will not timeout after long pause
+		 * If there are other sources which will not timeout, add them here
+		*/
+		if (!strcmp(name, "filesrc") || !strcmp(name, "souphttpsrc"))
+		{
+			GstStateChangeReturn ret;
+			GstState state, pending;
+			/* make sure that last state change was successfull */
+			ret = gst_element_get_state(m_gst_playbin, &state, &pending, 0);
+			if (ret == GST_STATE_CHANGE_SUCCESS)
+			{
+				gst_element_set_state(m_gst_playbin, GST_STATE_PLAYING);
+				ret = gst_element_get_state(m_gst_playbin, &state, &pending, 0);
+				if (ret == GST_STATE_CHANGE_SUCCESS)
+					return 0;
+			}
+			eDebugNoNewLineStart("[eServiceMP3] trickSeek - invalid state, state:%s pending:%s ret:%s",
+				gst_element_state_get_name(state),
+				gst_element_state_get_name(pending),
+				gst_element_state_change_return_get_name(ret));
+		}
+		else
+		{
+			eDebugNoNewLineStart("[eServiceMP3] trickSeek - source '%s' is not supported", name);
+		}
+seek_unpause:
+		eDebugNoNewLine(", doing seeking unpause\n");
+	}
+#endif
 	m_currentTrickRatio = ratio;
 
 	bool validposition = false;
@@ -1293,7 +1375,7 @@ std::string eServiceMP3::getInfoString(int w)
 	}
 	if ( !tag )
 		return "";
-	gchar *value;
+	gchar *value = NULL;
 	if (m_stream_tags && gst_tag_list_get_string(m_stream_tags, tag, &value))
 	{
 		std::string res = value;
@@ -1581,17 +1663,11 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 			{
 				case GST_STATE_CHANGE_NULL_TO_READY:
 				{
-#if GST_VERSION_MAJOR >= 1
-					/* CVR basic init done , now playbin must go to pause until mediasettings are done */
-					if(m_gst_playbin)
-					{
-						gst_element_set_state(m_gst_playbin, GST_STATE_PAUSED);
-						m_paused = true;
-					}
-#endif
+					m_event(this, evStart);
 				}	break;
 				case GST_STATE_CHANGE_READY_TO_PAUSED:
 				{
+					gst_element_set_state (m_gst_playbin, GST_STATE_PLAYING);
 #if GST_VERSION_MAJOR >= 1
 					GValue result = { 0, };
 #endif
@@ -1662,14 +1738,12 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 					setPCMDelay(pcm_delay);
 					if(!m_cuesheet_loaded) /* cuesheet CVR */
 						loadCuesheet();
+					updateEpgCacheNowNext();
 				}	break;
 				case GST_STATE_CHANGE_PAUSED_TO_PLAYING:
 				{
 					if ( m_sourceinfo.is_streaming && m_streamingsrc_timeout )
 						m_streamingsrc_timeout->stop();
-#if GST_VERSION_MAJOR >= 1
-					m_user_paused = false;
-#endif
 					m_paused = false;
 					if (m_seek_paused)
 					{
@@ -1681,9 +1755,6 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 				}	break;
 				case GST_STATE_CHANGE_PLAYING_TO_PAUSED:
 				{
-#if GST_VERSION_MAJOR >= 1
-					m_user_paused = true;
-#endif
 					m_paused = true;
 				}	break;
 				case GST_STATE_CHANGE_PAUSED_TO_READY:
@@ -1786,6 +1857,22 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 				if (m_stream_tags)
 					gst_tag_list_free(m_stream_tags);
 				m_stream_tags = result;
+
+				/* send evUpdatedInfo only when bitrate changes from 0 in order to reduce events */
+				guint value;
+				if(gst_tag_list_get_uint(m_stream_tags, GST_TAG_BITRATE, &value))
+				{
+					if(!m_bitrate && value)
+					{
+						m_bitrate = value;
+					}
+					else
+					{
+						m_bitrate = value;
+						gst_tag_list_free(tags);
+						break;
+					}
+				}
 			}
 
 			const GValue *gv_image = gst_tag_list_get_value_index(tags, GST_TAG_IMAGE, 0);
@@ -1939,14 +2026,6 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 				if (m_errorInfo.missing_codec.find("video/") == 0 || (m_errorInfo.missing_codec.find("audio/") == 0 && m_audioStreams.empty()))
 					m_event((iPlayableService*)this, evUser+12);
 			}
-#if GST_VERSION_MAJOR >= 1
-			/* CVR now all audio,video and subsettings are done playbin may go to playing */
-			if(m_paused && !m_user_paused)
-			{
-				gst_element_set_state (m_gst_playbin, GST_STATE_PLAYING);
-				m_paused = false;
-			}
-#endif
 			break;
 		}
 		case GST_MESSAGE_ELEMENT:
@@ -2211,7 +2290,7 @@ void eServiceMP3::playbinNotifySource(GObject *object, GParamSpec *unused, gpoin
 				std::string name, value;
 				size_t start = pos;
 				size_t len = std::string::npos;
-				pos = _this->m_extra_headers.find(':', pos);
+				pos = _this->m_extra_headers.find('=', pos);
 				if (pos != std::string::npos)
 				{
 					len = pos - start;
@@ -2219,7 +2298,7 @@ void eServiceMP3::playbinNotifySource(GObject *object, GParamSpec *unused, gpoin
 					name = _this->m_extra_headers.substr(start, len);
 					start = pos;
 					len = std::string::npos;
-					pos = _this->m_extra_headers.find('|', pos);
+					pos = _this->m_extra_headers.find('&', pos);
 					if (pos != std::string::npos)
 					{
 						len = pos - start;
