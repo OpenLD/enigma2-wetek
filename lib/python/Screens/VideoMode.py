@@ -609,11 +609,11 @@ class AutoVideoMode(Screen):
 						if not changeResolution:
 							print "[VideoMode] setMode - port: %s, mode: %s is not available" % (config_port, write_mode)
 							resolutionlabel["restxt"].setText(_("Video mode: %s not available") % write_mode)
-							# we try to go for not available 1080p24 to change to 1080p from 60hz_choices if available
+							# we try to go for not available 1080p24/1080p30/1080p60 to change to 1080p from 60hz_choices if available
 							# TODO: can we make it easier, or more important --> smaller ?
 							# should we outsourced that way, like two new "def ..."
 							# or some other stuff, not like this?
-							if write_mode == "1080p24":
+							if (write_mode == "1080p24") or (write_mode == "1080p30") or (write_mode == "1080p60"):
 								for x in values:
 									if x == "1080p":
 										try:
@@ -637,6 +637,10 @@ class AutoVideoMode(Screen):
 						vf.close()
 				except Exception, e:
 					print("[VideoMode] read videomode_choices exception:" + str(e))
+			elif write_mode and current_mode != write_mode:
+				# TODO: sometimes the resolution remains stuck at a wrong setting as self.bufferfull is False
+				# not sure whether that condition is correct in the 'if' above
+				print "[VideoMode] not changing from",current_mode,"to",write_mode,"as self.bufferfull is",self.bufferfull
 
 		iAVSwitch.setAspect(config.av.aspect)
 		iAVSwitch.setWss(config.av.wss)
