@@ -62,6 +62,7 @@ config.plugins.softwaremanager.overwriteConfigFiles = ConfigSelection(
 				], "Y")
 config.plugins.softwaremanager.onSetupMenu = ConfigYesNo(default=True)
 config.plugins.softwaremanager.onBlueButton = ConfigYesNo(default=False)
+config.plugins.softwaremanager.epgcache = ConfigYesNo(default=False)
 
 def write_cache(cache_file, cache_data):
 	#Does a cPickle dump
@@ -403,6 +404,7 @@ class SoftwareManagerSetup(Screen, ConfigListScreen):
 		self.list.append(self.overwriteConfigfilesEntry)
 		self.list.append(getConfigListEntry(_("show softwaremanager in setup menu"), config.plugins.softwaremanager.onSetupMenu))
 		self.list.append(getConfigListEntry(_("show softwaremanager on blue button"), config.plugins.softwaremanager.onBlueButton))
+		self.list.append(getConfigListEntry(_("epg cache backup"), config.plugins.softwaremanager.epgcache))
 
 		self["config"].list = self.list
 		self["config"].l.setSeperation(400)
@@ -1870,8 +1872,16 @@ class IpkgInstaller(Screen):
 
 		self.list = SelectionList()
 		self["list"] = self.list
+
+		p = 0
+		if len(list):
+			p = list[0].rfind("/")
+			title = list[0][:p]
+			self.title = ("%s %s %s") % (_("Install extensions"), _("from"), title)
+
 		for listindex in range(len(list)):
-			self.list.addSelection(list[listindex], list[listindex], listindex, False)
+			self.list.addSelection(list[listindex][p+1:], list[listindex], listindex, False)
+		self.list.sort()
 
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Install"))
