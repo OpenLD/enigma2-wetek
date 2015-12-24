@@ -72,7 +72,7 @@ eAMLTSMPEGDecoder::eAMLTSMPEGDecoder(eDVBDemux *demux, int decoder)
 	memset(&m_codec, 0, sizeof(codec_para_t ));
 	CONNECT(m_showSinglePicTimer->timeout, eAMLTSMPEGDecoder::finishShowSinglePic);
 	CONNECT(m_VideoRead->timeout, eAMLTSMPEGDecoder::parseVideoInfo);
-	m_VideoRead->start(50, false);
+	m_VideoRead->start(500, false);
 	
 	m_state = stateStop;
 	
@@ -90,7 +90,7 @@ eAMLTSMPEGDecoder::~eAMLTSMPEGDecoder()
  	m_vpid = m_apid = m_pcrpid = m_textpid = pidNone;
 	m_changed = -1;
 	setState();
-	
+
 	if (m_demux && m_decoder == 0)	// Tuxtxt caching actions only on primary decoder
 		eTuxtxtApp::getInstance()->freeCache();
 
@@ -312,55 +312,63 @@ RESULT eAMLTSMPEGDecoder::play()
 {
 	TRACE__
 
-	if ( ((m_apid >= 0) && (m_apid < 0x1FFF)) &&
-		 (((m_vpid >= 0) && (m_vpid < 0x1FFF)) || m_radio_pic.length()))
+	if (m_state == stateStop)
 	{
-
-		/* reuse osdBlank for blackout_policy test    */
-		/* arg. value:				      */
-		/*  1 - on channel change put black frame     */
-		/*  0 - on channel change keep previous frame */		
-		osdBlank("/sys/class/video/blackout_policy", 0);
-		
-		if(m_radio_pic.length())
-			showSinglePic(m_radio_pic.c_str());
-		
-		if (m_radio_pic_on)
-			finishShowSinglePic();
-			
-		m_codec.has_video = 0;
-		
-		if ((m_vpid >= 0) && (m_vpid < 0x1FFF)) {
-			m_codec.has_video = 1;
-			m_codec.video_pid = m_vpid;
-			osdBlank("/sys/class/video/blackout_policy", 1);
-		}
-		m_codec.has_audio = 1;
-		m_codec.audio_pid = m_apid;
-		m_codec.audio_channels = 2;
-		m_codec.audio_samplerate = 48000;
-		m_codec.audio_info.channels = 2;
-		m_codec.audio_info.sample_rate = m_codec.audio_samplerate;
-		m_codec.audio_info.valid = 0;
-		m_codec.stream_type = STREAM_TYPE_TS;
-
-		/* Tell the kernel on which adapter we want H/W CSA */
-		setStbSource(m_demux ? m_demux->adapter : 0);
-
-		int ret = codec_init(&m_codec);
-		if(ret != CODEC_ERROR_NONE)
+		if ( ((m_apid >= 0) && (m_apid < 0x1FFF)) &&
+			 (((m_vpid >= 0) && (m_vpid < 0x1FFF)) || m_radio_pic.length()))
 		{
-			eDebug("[eAMLTSMPEGDecoder::play] Amlogic CODEC codec_init failed  !!!!!");
+
+			/* reuse osdBlank for blackout_policy test    */
+			/* arg. value:				      */
+			/*  1 - on channel change put black frame     */
+			/*  0 - on channel change keep previous frame */		
+			osdBlank("/sys/class/video/blackout_policy", 0);
+			
+			if(m_radio_pic.length())
+				showSinglePic(m_radio_pic.c_str());
+			
+			if (m_radio_pic_on)
+				finishShowSinglePic();
+				
+			m_codec.has_video = 0;
+			
+			if ((m_vpid >= 0) && (m_vpid < 0x1FFF)) {
+				m_codec.has_video = 1;
+				m_codec.video_pid = m_vpid;
+				osdBlank("/sys/class/video/blackout_policy", 1);		
+			}
+			m_codec.has_audio = 1;
+			m_codec.audio_pid = m_apid;
+			m_codec.audio_channels = 2;
+			m_codec.audio_samplerate = 48000;
+			m_codec.audio_info.channels = 2;
+			m_codec.audio_info.sample_rate = m_codec.audio_samplerate;
+			m_codec.audio_info.valid = 0;
+			m_codec.stream_type = STREAM_TYPE_TS;
+
+			/* Tell the kernel on which adapter we want H/W CSA */
+			setStbSource(m_demux ? m_demux->adapter : 0);
+
+			int ret = codec_init(&m_codec);
+			if(ret != CODEC_ERROR_NONE)
+			{
+				eDebug("[eAMLTSMPEGDecoder::play] Amlogic CODEC codec_init failed  !!!!!");
+			}
+			else
+			{
+				eDebug("[eAMLTSMPEGDecoder::play] Amlogic CODEC codec_init success !!!!!");
+				setAvsyncEnable(1);
+				m_state = statePlay;
+			}
 		}
 		else
 		{
-			eDebug("[eAMLTSMPEGDecoder::play] Amlogic CODEC codec_init success !!!!!");
-			setAvsyncEnable(1);
+			eDebug("[eAMLTSMPEGDecoder::play] Invalid PIDs given I refuse to start !!!!!");
 		}
 	}
-	else
-	{
-		eDebug("[eAMLTSMPEGDecoder::play] Invalid PIDs given I refuse to start !!!!!");
+	else if (m_state == statePause) {
+		codec_resume(&m_codec);
+		m_state = statePlay;
 	}
 	return 0;
 }
@@ -368,6 +376,10 @@ RESULT eAMLTSMPEGDecoder::play()
 RESULT eAMLTSMPEGDecoder::pause()
 {
 	TRACE__
+	if (m_state == statePause)
+		return 0;
+	codec_pause(&m_codec);
+	m_state = statePause;
 	return 0;
 }
 
@@ -375,6 +387,9 @@ RESULT eAMLTSMPEGDecoder::setFastForward(int frames_to_skip)
 {
 	TRACE__
 	// fast forward is only possible if video data is present
+	if (!m_codec.has_video)
+		return -1;
+		
 	return 0;
 }
 
@@ -382,12 +397,18 @@ RESULT eAMLTSMPEGDecoder::setSlowMotion(int repeat)
 {
 	TRACE__
 	// slow motion is only possible if video data is present
+	if (!m_codec.has_video)
+		return -1;
+		
 	return 0;
 }
 
 RESULT eAMLTSMPEGDecoder::setTrickmode()
 {
 	TRACE__
+	if (!m_codec.has_video)
+		return -1;
+		
 	return 0;
 }
 
@@ -412,7 +433,7 @@ void eAMLTSMPEGDecoder::demux_event(int event)
 
 RESULT eAMLTSMPEGDecoder::getPTS(int what, pts_t &pts)
 {
-	TRACE__
+//	TRACE__
 	if (m_codec.handle >= 0)
 	{
 		if (what == 0) /* auto */
