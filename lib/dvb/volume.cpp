@@ -24,7 +24,7 @@
 #  define ALSA_VOLUME_MIXER "Master"
 # endif
 # ifndef ALSA_CARD
-#  define ALSA_CARD "default"
+#  define ALSA_CARD "hw:0"
 # endif
 #endif
 
@@ -93,9 +93,8 @@ int eDVBVolumecontrol::openMixer()
 		/* Set up Decoder 0 as the main volume control. */
 		snd_mixer_selem_id_t *sid;
 		snd_mixer_selem_id_alloca(&sid);
-//		snd_mixer_selem_id_set_name(sid, ALSA_VOLUME_MIXER);
-		snd_mixer_selem_id_set_name(sid, "AML-DUMMY-CODEC");
 		snd_mixer_selem_id_set_index(sid, 0);
+		snd_mixer_selem_id_set_name(sid, "Master");
 		mainVolume = snd_mixer_find_selem(alsaMixerHandle, sid);
 	}
 	return mainVolume ? 0 : -1;
