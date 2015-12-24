@@ -2924,7 +2924,7 @@ void eDVBServicePlay::updateDecoder(bool sendSeekableStateChanged)
 		if (!(m_is_pvr || m_is_stream || m_timeshift_active || (pcrpid == 0x1FFF)))
 			m_decoder->setSyncPCR(pcrpid);
 		else
-			m_decoder->setSyncPCR(-1);
+			m_decoder->setSyncPCR(pcrpid);
 
 		selectAudioStream();
 

@@ -116,7 +116,7 @@ void eRCDeviceInputDev::handleCode(long rccode)
 	eDebug("-->before change %x %x %x", ev->value, ev->code, ev->type);
 */
 /* default is with NO numerc keys !!!*/
-	if (!bflag) {
+	if (bflag) {
 		if (ev->code == KEY_1) {
 			ev->code = KEY_RED;
 		}

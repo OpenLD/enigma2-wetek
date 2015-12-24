@@ -41,6 +41,7 @@ private:
 	std::string m_radio_pic;
 	ePtr<eDVBDemux> m_demux;
 	int m_vpid, m_vtype, m_apid, m_atype, m_pcrpid, m_textpid;
+	int m_width, m_height, m_framerate, m_aspect, m_progressive;
 	enum
 	{
 		changeVideo = 1,
@@ -50,6 +51,7 @@ private:
 		changeState = 16,
 	};
 	int m_changed, m_decoder;
+	int m_radio_pic_on;
 	int m_state;
 	int m_ff_sm_ratio;
 	bool m_has_audio;
@@ -64,7 +66,9 @@ private:
 	int m_video_clip_fd;
 	ePtr<eTimer> m_showSinglePicTimer;
 	void finishShowSinglePic(); // called by timer
-
+	ePtr<eTimer> m_VideoRead;	
+	void parseVideoInfo(); // called by timer
+	
 	//Amcodec related
 
 	int m_axis[8];
