@@ -126,6 +126,9 @@ class VideoSetup(Screen, ConfigListScreen):
 #		if not isinstance(config.av.scaler_sharpness, ConfigNothing):
 #			self.list.append(getConfigListEntry(_("Scaler sharpness"), config.av.scaler_sharpness, _("This option configures the picture sharpness.")))
 
+		if SystemInfo["havecolorspace"]:
+			self.list.append(getConfigListEntry(_("HDMI Colorspace"), config.av.hdmicolorspace,_("This option allows you can config the Colorspace from Auto to RGB")))
+
 		self["config"].list = self.list
 		self["config"].l.setList(self.list)
 		if config.usage.sort_settings.value:
@@ -350,6 +353,7 @@ class AutoVideoMode(Screen):
 				iPlayableService.evVideoProgressiveChanged: self.VideoChanged,
 				iPlayableService.evVideoFramerateChanged: self.VideoChanged,
 				iPlayableService.evBuffering: self.BufferInfo,
+				iPlayableService.evStopped: self.BufferInfoStop
 			})
 
 		self.delay = False
@@ -364,6 +368,9 @@ class AutoVideoMode(Screen):
 			self.VideoChanged()
 		else:
 			self.bufferfull = False
+
+	def BufferInfoStop(self):
+		self.bufferfull = True
 
 	def VideoChanged(self):
 		if self.session.nav.getCurrentlyPlayingServiceReference() and not self.session.nav.getCurrentlyPlayingServiceReference().toString().startswith('4097:'):
@@ -546,21 +553,20 @@ class AutoVideoMode(Screen):
 						mypath = ''
 				else:
 					mypath = ''
-				if new_rate == 'multi':
-					# no frame rate information available, check if filename (or directory name) contains a hint
-					# (allow user to force a frame rate this way):
-					if   (mypath.find('p24.') >= 0) or (mypath.find('24p.') >= 0):
-						new_rate = '24'
-					elif (mypath.find('p25.') >= 0) or (mypath.find('25p.') >= 0):
-						new_rate = '25'
-					elif (mypath.find('p30.') >= 0) or (mypath.find('30p.') >= 0):
-						new_rate = '30'
-					elif (mypath.find('p50.') >= 0) or (mypath.find('50p.') >= 0):
-						new_rate = '50'
-					elif (mypath.find('p60.') >= 0) or (mypath.find('60p.') >= 0):
-						new_rate = '60'
-					else:
-						new_rate = '' # omit frame rate specifier, e.g. '1080p' instead of '1080p50' if there is no clue
+				# no frame rate information available, check if filename (or directory name) contains a hint
+				# (allow user to force a frame rate this way):
+				if   (mypath.find('p24.') >= 0) or (mypath.find('24p.') >= 0):
+					new_rate = '24'
+				elif (mypath.find('p25.') >= 0) or (mypath.find('25p.') >= 0):
+					new_rate = '25'
+				elif (mypath.find('p30.') >= 0) or (mypath.find('30p.') >= 0):
+					new_rate = '30'
+				elif (mypath.find('p50.') >= 0) or (mypath.find('50p.') >= 0):
+					new_rate = '50'
+				elif (mypath.find('p60.') >= 0) or (mypath.find('60p.') >= 0):
+					new_rate = '60'
+				elif new_rate == 'multi':
+					new_rate = '' # omit frame rate specifier, e.g. '1080p' instead of '1080p50' if there is no clue
 				if mypath != '':
 					if mypath.endswith('.ts'):
 						print "DEBUG VIDEOMODE/ playing .ts file"
@@ -638,8 +644,7 @@ class AutoVideoMode(Screen):
 				except Exception, e:
 					print("[VideoMode] read videomode_choices exception:" + str(e))
 			elif write_mode and current_mode != write_mode:
-				# TODO: sometimes the resolution remains stuck at a wrong setting as self.bufferfull is False
-				# not sure whether that condition is correct in the 'if' above
+				# the resolution remained stuck at a wrong setting after streaming when self.bufferfull was False (should be fixed now after adding BufferInfoStop)
 				print "[VideoMode] not changing from",current_mode,"to",write_mode,"as self.bufferfull is",self.bufferfull
 
 		iAVSwitch.setAspect(config.av.aspect)

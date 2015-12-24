@@ -155,15 +155,15 @@ void bsodFatal(const char *component)
 	}
 
 	FILE *f;
-	const char* crashlog_name;
+	std::string crashlog_name;
 	std::ostringstream os;
 	std::ostringstream os_text;
 	os << getConfigString("config.crash.debug_path", "/home/root/logs/");
 	os << "enigma2_crash_";
 	os << time(0);
 	os << ".log";
-	crashlog_name = os.str().c_str();
-	f = fopen(crashlog_name, "wb");
+	crashlog_name = os.str();
+	f = fopen(crashlog_name.c_str(), "wb");
 
 	if (f == NULL)
 	{
@@ -172,14 +172,14 @@ void bsodFatal(const char *component)
 		 * all night long may damage the flash. Also, usually the first
 		 * crash log is the most interesting one. */
 		crashlog_name = "/home/root/logs/enigma2_crash.log";
-		if ((access(crashlog_name, F_OK) == 0) ||
-		    ((f = fopen(crashlog_name, "wb")) == NULL))
+		if ((access(crashlog_name.c_str(), F_OK) == 0) ||
+		    ((f = fopen(crashlog_name.c_str(), "wb")) == NULL))
 		{
 			/* Re-write the same file in /tmp/ because it's expected to
 			 * be in RAM. So the first crash log will end up in /home
 			 * and the last in /tmp */
 			crashlog_name = "/tmp/enigma2_crash.log";
-			f = fopen(crashlog_name, "wb");
+			f = fopen(crashlog_name.c_str(), "wb");
 		}
 	}
 
@@ -285,11 +285,12 @@ void bsodFatal(const char *component)
 	p.setBackgroundColor(gRGB(0x27408B));
 	p.setForegroundColor(gRGB(0xFFFFFF));
 
-	ePtr<gFont> font = new gFont("Regular", 20);
+	int hd =  my_dc->size().width() == 1920;
+	ePtr<gFont> font = new gFont("Regular", hd ? 30 : 20);
 	p.setFont(font);
 	p.clear();
 
-	eRect usable_area = eRect(100, 70, my_dc->size().width() - 150, 100);
+	eRect usable_area = eRect(hd ? 30 : 100, hd ? 30 : 70, my_dc->size().width() - (hd ? 60 : 150), hd ? 150 : 100);
 
 	os.str("");
 	os.clear();
@@ -305,7 +306,7 @@ void bsodFatal(const char *component)
 
 	p.renderText(usable_area, os.str().c_str(), gPainter::RT_WRAP|gPainter::RT_HALIGN_LEFT);
 
-	usable_area = eRect(100, 170, my_dc->size().width() - 180, my_dc->size().height() - 20);
+	usable_area = eRect(hd ? 30 : 100, hd ? 180 : 170, my_dc->size().width() - (hd ? 60 : 180), my_dc->size().height() - (hd ? 30 : 20));
 
 	int i;
 
@@ -320,7 +321,7 @@ void bsodFatal(const char *component)
 		}
 	}
 
-	font = new gFont("Regular", 14);
+	font = new gFont("Regular", hd ? 21 : 14);
 	p.setFont(font);
 
 	p.renderText(usable_area,

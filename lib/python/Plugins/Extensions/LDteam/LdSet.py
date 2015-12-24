@@ -1,6 +1,6 @@
 # -*- coding: ISO-8859-1 -*-
 
-from enigma import eTimer
+from enigma import eTimer, eListboxPythonMultiContent, gFont, eEnv, getDesktop, pNavigation
 from Screens.Screen import Screen
 from Screens.MessageBox import MessageBox
 from Screens.InputBox import InputBox
@@ -16,21 +16,25 @@ from Components.Sources.Progress import Progress
 from Components.Console import Console
 from Components.Network import iNetwork
 from Components.MenuList import MenuList
-from Components.ActionMap import ActionMap
+from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend
+from Screens.Setup import Setup, getSetupTitle
 from Components.Language import language
 from ServiceReference import ServiceReference
 from enigma import eEPGCache
 from enigma import eDVBDB
 from Components.ScrollLabel import ScrollLabel
 from Components.Console import Console as iConsole
+from time import sleep
+from re import search
 from time import *
 from types import *
 from enigma import *
 import sys, traceback, re, new, os, gettext, commands, time, datetime, _enigma, enigma, Screens.Standby, subprocess, threading
 from Tools.LoadPixmap import LoadPixmap
-from Tools.Directories import fileExists, pathExists, resolveFilename, SCOPE_CURRENT_SKIN, SCOPE_PLUGINS
+from Tools.Directories import fileExists, pathExists, resolveFilename, SCOPE_PLUGINS, SCOPE_SKIN_IMAGE, SCOPE_SKIN
 from os import system, listdir, path, remove as os_remove, rename as os_rename, popen, getcwd, chdir
 from Plugins.SystemPlugins.NetworkBrowser.NetworkBrowser import NetworkBrowser
+import NavigationInstance
 
 count = 0
 
@@ -42,13 +46,13 @@ config.plugins.LDteam.auto2 = ConfigSelection(default = "no", choices = [
                 ("no", _("no")),
 		("yes", _("yes")),
 		])
-config.plugins.LDteam.dropmode = ConfigSelection(default = '1', choices = [
+config.plugins.LDteam.dropmode = ConfigSelection(default = '3', choices = [
 		('1', _("free pagecache")),
 		('2', _("free dentries and inodes")),
 		('3', _("free pagecache, dentries and inodes")),
 		])
 config.plugins.LDteam.epgtime2 = ConfigClock(default = ((16*60) + 15) * 60)
-config.plugins.LDteam.epgmhw2wait = ConfigNumber(default = 300 ) # 300 seconds = 5 minutes
+config.plugins.LDteam.epgmhw2wait = ConfigNumber(default = 350 ) # 350 seconds = 5,83 minutes
 
 def mountp():
 	pathmp = []
@@ -96,7 +100,13 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 			"back": self.close
 
 		})
-		
+
+	def openSetup(self, dialog):
+		self.session.openWithCallback(self.menuClosed, Setup, dialog)
+
+	def menuClosed(self, *res):
+		pass
+				
 	def KeyOk(self):
 		self.sel = self["list"].getCurrent()
 		self.sel = self.sel[2]
@@ -114,7 +124,7 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 			from Plugins.Extensions.LDteam.LdSwapManager import Swap
 			self.session.open(Swap)
 		elif self.sel == 4:
-			self.session.open(LdSetupOSD3)
+			self.openSetup("userinterface")
 		elif self.sel == 5:
 			from Screens.CCcamInfo import CCcamInfoMain
 			self.session.open(CCcamInfoMain)
@@ -124,14 +134,15 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 		elif self.sel == 7:
 			self.session.open(LDepg)
 		elif self.sel == 8:
-			self.session.open(LdSetupRecord)
-		elif self.sel == 9:
 			from Screens.Recordings import RecordingSettings
 			self.session.open(RecordingSettings)
+		elif self.sel == 9:
+			from Plugins.SystemPlugins.Satfinder.plugin import Satfinder
+			self.session.open(Satfinder)
 		elif self.sel == 10:
-			self.session.open(LdSetupAutolanguage)
+			self.openSetup("autolanguagesetup")
 		elif self.sel == 11:
-			self.session.open(LdSetupHttpStream)
+			self.openSetup("usage")
 		elif self.sel == 13:
 			self.session.open(LDmemoria)
 		elif self.sel == 14:
@@ -154,28 +165,28 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 
 		mypixmap = mypath + "crond.png"
 		png = LoadPixmap(mypixmap)
-		name = "CronManager"
+		name = _("CronManager")
 		idx = 14
 		res = (name, png, idx)
 		self.list.append(res)
 
 		mypixmap = mypath + "Harddisk.png"
 		png = LoadPixmap(mypixmap)
-		name = "Admin Dispositivos"
+		name = _("Admin Devices")
 		idx = 0
 		res = (name, png, idx)
 		self.list.append(res)
 
 		mypixmap = mypath + "Usb.png"
 		png = LoadPixmap(mypixmap)
-		name = "Formatear USB"
+		name = _("Usb Format Wizard")
 		idx = 2
 		res = (name, png, idx)
 		self.list.append(res)
 
 		mypixmap = mypath + "SwapManager.png"
 		png = LoadPixmap(mypixmap)
-		name = "Memoria Swap"
+		name = _("Swap File settings")
 		idx = 3
 		res = (name, png, idx)
 		self.list.append(res)
@@ -189,56 +200,56 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 
 		mypixmap = mypath + "Epg_setup.png"
 		png = LoadPixmap(mypixmap)
-		name = "Opciones EPG"
+		name = _("Epg settings")
 		idx = 7
 		res = (name, png, idx)
 		self.list.append(res)
 
 		mypixmap = mypath + "AV_Setup.png"
 		png = LoadPixmap(mypixmap)
-		name = "Opciones Osd"
+		name = _("Osd settings")
 		idx = 4
 		res = (name, png, idx)
 		self.list.append(res)
 
 		mypixmap = mypath + "Ajustes_grabar.png"
 		png = LoadPixmap(mypixmap)
-		name = "Ajustes de grabacion"
+		name = _("Record settings")
 		idx = 8
 		res = (name, png, idx)
 		self.list.append(res)
 
-		mypixmap = mypath + "folder.png"
+		mypixmap = mypath + "Tuner_Setup.png"
 		png = LoadPixmap(mypixmap)
-		name = "Ruta de grabacion"
+		name = _("Satfinder")
 		idx = 9
 		res = (name, png, idx)
 		self.list.append(res)
 
 		mypixmap = mypath + "Conf_idiomas.png"
 		png = LoadPixmap(mypixmap)
-		name = "Auto configuracion idioma"
+		name = _("Auto language settings")
 		idx = 10
 		res = (name, png, idx)
 		self.list.append(res)
 
 		mypixmap = mypath + "Ajustes_http.png"
 		png = LoadPixmap(mypixmap)
-		name = "Ajustes Http stream"
+		name = _("Http stream settings")
 		idx = 11
 		res = (name, png, idx)
 		self.list.append(res)
 
 		mypixmap = mypath + "Module.png"
 		png = LoadPixmap(mypixmap)
-		name = "Liberar memoria"
+		name = _("Liberate RAM")
 		idx = 13
 		res = (name, png, idx)
 		self.list.append(res)
 
 		mypixmap = mypath + "Network.png"
 		png = LoadPixmap(mypixmap)
-		name = "Reiniciar RED"
+		name = _("Reset Network")
 		idx = 15
 		res = (name, png, idx)
 		self.list.append(res)
@@ -273,7 +284,7 @@ class Ttimer(Screen):
                 global count
                 self.skin = Ttimer.skin
                 Screen.__init__(self, session)
-                self['srclabel'] = Label(_("Por favor Espere, Actualizando Epg"))
+                self['srclabel'] = Label(_("Please wait, Updating Epg"))
                 self.setTitle(_("Update EPG"))
                 self["progress"] = Progress(int(count))
                 self['progress'].setRange(int(config.plugins.LDteam.epgmhw2wait.value-5))
@@ -292,7 +303,7 @@ class Ttimer(Screen):
                         self.ctimer.stop()
                         self.session.nav.playService(eServiceReference(config.tv.lastservice.value))
                         rDialog.stopDialog(self.session)
-                        self.mbox = self.session.open(MessageBox,(_("Epg Actualizado")), MessageBox.TYPE_INFO, timeout = 5 )
+                        self.mbox = self.session.open(MessageBox,(_("Updated Epg")), MessageBox.TYPE_INFO, timeout = 5 )
                         self.close()
 pdialog = ""
 
@@ -336,7 +347,7 @@ class LDepg(Screen, ConfigListScreen):
 		self.setTitle(_("EPG Options"))
 		self.list = []
 		ConfigListScreen.__init__(self, self.list)
-		self["key_blue"] = StaticText(_("ver log"))
+		self["key_blue"] = StaticText(_("Show log"))
 		self["key_red"] = StaticText(_("Close"))
 		self["key_green"] = StaticText(_("Save"))
 		self["key_yellow"] = StaticText(_("Update"))
@@ -357,10 +368,10 @@ class LDepg(Screen, ConfigListScreen):
 		self.list.append(getConfigListEntry(_("Enable ViaSat EPG"), config.epg.viasat))
 		self.list.append(getConfigListEntry(_("Enable Netmed EPG"), config.epg.netmed))
 		self.list.append(getConfigListEntry(_("Enable Virgin EPG"), config.epg.virgin))
-		self.list.append(getConfigListEntry(_("Ruta donde almacenar el epg.dat"), config.misc.epgcachepath))
+		self.list.append(getConfigListEntry(_("The path where stored epg.dat"), config.misc.epgcachepath))
 		self.list.append(getConfigListEntry(_("Maximum number of days in EPG"), config.epg.maxdays))
 		self.list.append(getConfigListEntry(_("Maintain old EPG data for"), config.epg.histminutes))
-		self.list.append(getConfigListEntry(_("Tiempo Duracion en Portada"), config.plugins.LDteam.epgmhw2wait))
+		self.list.append(getConfigListEntry(_("Time at title page"), config.plugins.LDteam.epgmhw2wait))
 		
 		self["config"].list = self.list
 		self["config"].l.setList(self.list)
@@ -481,12 +492,12 @@ class LDmemoria(ConfigListScreen, Screen):
 			"yellow": self.ClearNow,
 			"ok": self.save_values
 		}, -2)
-		self.list.append(getConfigListEntry(_("Elija modo liberar memoria"), config.plugins.LDteam.dropmode))
+		self.list.append(getConfigListEntry(_("Select free memory mode"), config.plugins.LDteam.dropmode))
 		ConfigListScreen.__init__(self, self.list)
 		self.onShow.append(self.Title)
 		
 	def Title(self):
-		self.setTitle(_("Liberar memoria"))
+		self.setTitle(_("Free memory"))
 		self.infomem()
 
 	def cancel(self):
@@ -527,220 +538,6 @@ class LDmemoria(ConfigListScreen, Screen):
 		else:
 			self.mbox = self.session.open(MessageBox,(_("error...")), MessageBox.TYPE_INFO, timeout = 4 )
 		self.infomem()
-
-class LdSetupOSD3(Screen, ConfigListScreen):
-	skin = """
-	<screen position="center,center" size="700,500" title="OpenLD - Opciones Osd">
-		<widget name="config" position="10,10" size="680,430" scrollbarMode="showOnDemand" />
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/red150x30.png" position="140,450" size="150,30" alphatest="on" />
-		<widget name="key_red" position="140,450" zPosition="1" size="150,25" font="Regular;20" halign="center" valign="center" backgroundColor="red" transparent="1" />
-		<ePixmap position="420,450" size="150,30" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/green150x30.png" alphatest="on" zPosition="1" />
-		<widget name="key_green" position="420,450" zPosition="2" size="150,25" font="Regular;20" halign="center" valign="center" backgroundColor="green" transparent="1" />
-	</screen>"""
-	
-	def __init__(self, session):
-		Screen.__init__(self, session)
-		
-		self.list = []
-		ConfigListScreen.__init__(self, self.list)
-		self["key_red"] = Label(_("Cancel"))
-		self["key_green"] = Label(_("Save"))
-		
-		self["actions"] = ActionMap(["WizardActions", "ColorActions"],
-		{
-			"red": self.keyCancel,
-			"back": self.keyCancel,
-			"green": self.keySave,
-
-		}, -2)
-				
-		self.list.append(getConfigListEntry(_("Infobar timeout"), config.usage.infobar_timeout))
-		self.list.append(getConfigListEntry(_("Show second infobar"), config.usage.show_second_infobar))
-		self.list.append(getConfigListEntry(_("Show event-progress in channel selection"), config.usage.show_event_progress_in_servicelist))
-		self.list.append(getConfigListEntry(_("Show channel numbers in channel selection"), config.usage.show_channel_numbers_in_servicelist))
-		self.list.append(getConfigListEntry(_("Show infobar on channel change"), config.usage.show_infobar_on_zap))
-		self.list.append(getConfigListEntry(_("Show infobar on skip forward/backward"), config.usage.show_infobar_on_skip))
-		self.list.append(getConfigListEntry(_("Show infobar on event change"), config.usage.show_infobar_on_event_change))
-		self.list.append(getConfigListEntry(_("Hide zap errors"), config.usage.hide_zap_errors))
-		self.list.append(getConfigListEntry(_("Hide CI messages"), config.usage.hide_ci_messages))
-		self.list.append(getConfigListEntry(_("Show crypto info in infobar"), config.usage.show_cryptoinfo))
-		self.list.append(getConfigListEntry(_("Swap SNR in db with SNR in percentage on OSD"), config.usage.swap_snr_on_osd))
-		self.list.append(getConfigListEntry(_("Show EIT now/next in infobar"), config.usage.show_eit_nownext))
-		
-		
-		self["config"].list = self.list
-		self["config"].l.setList(self.list)
-
-	def keySave(self):
-		for x in self["config"].list:
-			x[1].save()
-		self.close()
-
-	def keyCancel(self):
-		for x in self["config"].list:
-			x[1].cancel()
-		self.close()
-
-class LdSetupRecord(Screen, ConfigListScreen):
-	skin = """
-	<screen position="center,center" size="700,500" title="OpenLD - Ajustes de grabacion">
-		<widget name="config" position="10,10" size="680,430" scrollbarMode="showOnDemand" />
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/red150x30.png" position="140,450" size="150,30" alphatest="on" />
-		<widget name="key_red" position="140,450" zPosition="1" size="150,25" font="Regular;20" halign="center" valign="center" backgroundColor="red" transparent="1" />
-		<ePixmap position="420,450" size="150,30" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/green150x30.png" alphatest="on" zPosition="1" />
-		<widget name="key_green" position="420,450" zPosition="2" size="150,25" font="Regular;20" halign="center" valign="center" backgroundColor="green" transparent="1" />
-	</screen>"""
-	
-	def __init__(self, session):
-		Screen.__init__(self, session)
-		
-		self.list = []
-		ConfigListScreen.__init__(self, self.list)
-		self["key_red"] = Label(_("Cancel"))
-		self["key_green"] = Label(_("Save"))
-		
-		self["actions"] = ActionMap(["WizardActions", "ColorActions"],
-		{
-			"red": self.keyCancel,
-			"back": self.keyCancel,
-			"green": self.keySave,
-
-		}, -2)
-		
-		self.list.append(getConfigListEntry(_("Recordings always have priority"), config.recording.asktozap))
-		self.list.append(getConfigListEntry(_("Margin before record (minutes)"), config.recording.margin_before))
-		self.list.append(getConfigListEntry(_("Margin after record"), config.recording.margin_after))
-		self.list.append(getConfigListEntry(_("Show Message when Recording starts"), config.usage.show_message_when_recording_starts))
-		self.list.append(getConfigListEntry(_("Load Length of Movies in Movielist"), config.usage.load_length_of_movies_in_moviellist))
-		self.list.append(getConfigListEntry(_("Show status icons in Movielist"), config.usage.show_icons_in_movielist))
-		
-		self.list.append(getConfigListEntry(_("Behavior when a movie is started"), config.usage.on_movie_start))
-		self.list.append(getConfigListEntry(_("Behavior when a movie is stopped"), config.usage.on_movie_stop))
-		self.list.append(getConfigListEntry(_("Behavior when a movie reaches the end"), config.usage.on_movie_eof))
-		self.list.append(getConfigListEntry(_("Behavior of 'pause' when paused"), config.seek.on_pause))
-		self.list.append(getConfigListEntry(_("Custom skip time for '1'/'3'-keys"), config.seek.selfdefined_13))
-		self.list.append(getConfigListEntry(_("Custom skip time for '4'/'6'-keys"), config.seek.selfdefined_46))
-		self.list.append(getConfigListEntry(_("Custom skip time for '7'/'9'-keys"), config.seek.selfdefined_79))
-		self.list.append(getConfigListEntry(_("Fast Forward speeds"), config.seek.speeds_forward))
-		self.list.append(getConfigListEntry(_("Rewind speeds"), config.seek.speeds_backward))
-		self.list.append(getConfigListEntry(_("Slow Motion speeds"), config.seek.speeds_slowmotion))
-		
-		self["config"].list = self.list
-		self["config"].l.setList(self.list)
-
-	def keySave(self):
-		for x in self["config"].list:
-			x[1].save()
-		self.close()
-
-	def keyCancel(self):
-		for x in self["config"].list:
-			x[1].cancel()
-		self.close()
-	
-class LdSetupAutolanguage(Screen, ConfigListScreen):
-	skin = """
-	<screen position="center,center" size="700,500" title="OpenLD - Auto configuracion idioma">
-		<widget name="config" position="10,10" size="680,430" scrollbarMode="showOnDemand" />
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/red150x30.png" position="140,450" size="150,30" alphatest="on" />
-		<widget name="key_red" position="140,452" zPosition="1" size="150,25" font="Regular;20" halign="center" valign="center" backgroundColor="red" transparent="1" />
-		<ePixmap position="420,450" size="150,30" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/green150x30.png" alphatest="on" zPosition="1" />
-		<widget name="key_green" position="420,452" zPosition="2" size="150,25" font="Regular;20" halign="center" valign="center" backgroundColor="green" transparent="1" />
-	</screen>"""
-	
-	def __init__(self, session):
-		Screen.__init__(self, session)
-		
-		self.list = []
-		ConfigListScreen.__init__(self, self.list)
-		self["key_red"] = Label(_("Cancel"))
-		self["key_green"] = Label(_("Save"))
-		
-		self["actions"] = ActionMap(["WizardActions", "ColorActions"],
-		{
-			"red": self.keyCancel,
-			"back": self.keyCancel,
-			"green": self.keySave,
-
-		}, -2)
-						
-		self.list.append(getConfigListEntry(_("Audio language selection 1"), config.autolanguage.audio_autoselect1))
-		self.list.append(getConfigListEntry(_("Audio language selection 2"), config.autolanguage.audio_autoselect2))
-		self.list.append(getConfigListEntry(_("Audio language selection 3"), config.autolanguage.audio_autoselect3))
-		self.list.append(getConfigListEntry(_("Audio language selection 4"), config.autolanguage.audio_autoselect4))
-		self.list.append(getConfigListEntry(_("Prefer AC3"), config.autolanguage.audio_defaultac3))
-		self.list.append(getConfigListEntry(_("Prefer audio stream stored by service"), config.autolanguage.audio_usecache))
-		self.list.append(getConfigListEntry(_("Subtitle language selection 1"), config.autolanguage.subtitle_autoselect1))
-		self.list.append(getConfigListEntry(_("Subtitle language selection 2"), config.autolanguage.subtitle_autoselect2))
-		self.list.append(getConfigListEntry(_("Subtitle language selection 3"), config.autolanguage.subtitle_autoselect3))
-		self.list.append(getConfigListEntry(_("Subtitle language selection 4"), config.autolanguage.subtitle_autoselect4))
-		self.list.append(getConfigListEntry(_("Allow Subtitle equals Audio mask"), config.autolanguage.equal_languages))
-		self.list.append(getConfigListEntry(_("Allow hearing impaired subtitles"), config.autolanguage.subtitle_hearingimpaired))
-		self.list.append(getConfigListEntry(_("Prefer hearing impaired subtitles"), config.autolanguage.subtitle_defaultimpaired))
-		self.list.append(getConfigListEntry(_("Prefer DVB-grafical subtitles"), config.autolanguage.subtitle_defaultdvb))
-		self.list.append(getConfigListEntry(_("Prefer subtitle stored by service"), config.autolanguage.subtitle_usecache))
-		self.list.append(getConfigListEntry(_("EPG language selection 1"), config.autolanguage.audio_epglanguage))
-		self.list.append(getConfigListEntry(_("EPG language selection 2"), config.autolanguage.audio_epglanguage_alternative))
-		
-		
-		
-		self["config"].list = self.list
-		self["config"].l.setList(self.list)
-
-	def keySave(self):
-		for x in self["config"].list:
-			x[1].save()
-		self.close()
-
-	def keyCancel(self):
-		for x in self["config"].list:
-			x[1].cancel()
-		self.close()
-		
-class LdSetupHttpStream(Screen, ConfigListScreen):
-	skin = """
-	<screen position="center,center" size="700,500" title="OpenLD - Ajustes Http stream">
-		<widget name="config" position="10,10" size="680,430" scrollbarMode="showOnDemand" />
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/red150x30.png" position="140,450" size="150,30" alphatest="on" />
-		<widget name="key_red" position="140,452" zPosition="1" size="150,25" font="Regular;20" halign="center" valign="center" backgroundColor="red" transparent="1" />
-		<ePixmap position="420,450" size="150,30" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/green150x30.png" alphatest="on" zPosition="1" />
-		<widget name="key_green" position="420,452" zPosition="2" size="150,25" font="Regular;20" halign="center" valign="center" backgroundColor="green" transparent="1" />
-	</screen>"""
-	
-	def __init__(self, session):
-		Screen.__init__(self, session)
-		
-		self.list = []
-		ConfigListScreen.__init__(self, self.list)
-		self["key_red"] = Label(_("Cancel"))
-		self["key_green"] = Label(_("Save"))
-		
-		self["actions"] = ActionMap(["WizardActions", "ColorActions"],
-		{
-			"red": self.keyCancel,
-			"back": self.keyCancel,
-			"green": self.keySave,
-
-		}, -2)
-						
-		self.list.append(getConfigListEntry(_("Include EIT in http streams"), config.streaming.stream_eit))
-		self.list.append(getConfigListEntry(_("Include AIT in http streams"), config.streaming.stream_ait))
-		self.list.append(getConfigListEntry(_("Include ECM in http streams"), config.streaming.stream_ecm))
-		self.list.append(getConfigListEntry(_("Descramble http streams"), config.streaming.descramble))
-		
-		
-		self["config"].list = self.list
-		self["config"].l.setList(self.list)
-
-	def keySave(self):
-		for x in self["config"].list:
-			x[1].save()
-		self.close()
-
-	def keyCancel(self):
-		for x in self["config"].list:
-			x[1].cancel()
-		self.close()
 		
 
 class LdNetBrowser(Screen):
