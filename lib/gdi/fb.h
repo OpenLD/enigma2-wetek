@@ -58,7 +58,7 @@ public:
 	unsigned int Stride() { return stride; }
 	fb_cmap *CMAP() { return &cmap; }
 
-	fbClass(const char *fb=FB_DEV);
+	fbClass(const char *fb="/dev/fb2");
 	~fbClass();
 
 			// low level gfx stuff
