@@ -367,7 +367,24 @@ RESULT eAMLTSMPEGDecoder::play()
 		}
 	}
 	else if (m_state == statePause) {
-		codec_resume(&m_codec);
+
+#define PVR_P0                _IO('o', 100)
+#define PVR_P1                _IO('o', 101)
+#define PVR_P2                _IO('o', 102)
+#define PVR_P3                _IO('o', 103)
+		if (m_codec.handle >= 0)
+			codec_resume(&m_codec);
+		else {
+			if (m_demux && m_demux->m_pvr_fd)
+				::ioctl(m_demux->m_pvr_fd, PVR_P2);				
+							
+			codec_init(&m_codec);
+			setAvsyncEnable(1);	
+
+			if (m_demux && m_demux->m_pvr_fd)
+				::ioctl(m_demux->m_pvr_fd, PVR_P3);
+			
+		}
 		m_state = statePlay;
 	}
 	return 0;
@@ -376,9 +393,25 @@ RESULT eAMLTSMPEGDecoder::play()
 RESULT eAMLTSMPEGDecoder::pause()
 {
 	TRACE__
+	struct adec_status adec;
+	
 	if (m_state == statePause)
 		return 0;
-	codec_pause(&m_codec);
+			
+	codec_get_adec_state(&m_codec, &adec);
+	
+	if (adec.channels) 
+		codec_pause(&m_codec);
+	else {
+		if (m_demux && m_demux->m_pvr_fd)
+			::ioctl(m_demux->m_pvr_fd, PVR_P0);
+			
+		codec_close(&m_codec);
+		m_codec.handle = -1;	
+		
+		if (m_demux && m_demux->m_pvr_fd)
+			::ioctl(m_demux->m_pvr_fd, PVR_P1);
+	}
 	m_state = statePause;
 	return 0;
 }
