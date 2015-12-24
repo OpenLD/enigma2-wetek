@@ -4,13 +4,6 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 datarootdir=@datarootdir@
 
-if [ -e /usr/bin/xbmc ]; then
-	if [ -e /etc/.xbmcstart ]; then
-		rm -f /etc/.xbmcstart
-		/usr/bin/xbmc
-	fi
-fi
-
 if [ -e /usr/lib/kodi/kodi.sh ]; then
 	if [ -e /etc/.kodistart ]; then
 		rm -f /etc/.kodistart
@@ -26,7 +19,6 @@ if [ -e /usr/lib/kodi/kodi.sh ]; then
 		fi
 		echo 0 >  /sys/class/video/disable_video
 		echo 0 > /sys/class/graphics/fb0/blank
-
 	fi
 fi
 
