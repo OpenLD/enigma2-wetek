@@ -315,10 +315,11 @@ RESULT eAMLTSMPEGDecoder::play()
 		m_codec.audio_samplerate = 48000;
 		m_codec.audio_info.channels = 2;
 		m_codec.audio_info.sample_rate = m_codec.audio_samplerate;
-		m_codec.audio_info.valid = 1;
+		m_codec.audio_info.valid = 0;
 		m_codec.stream_type = STREAM_TYPE_TS;
 
-		setStbSource(0);
+		/* Tell the kernel on which adapter we want H/W CSA */
+		setStbSource(m_demux ? m_demux->adapter : 0);
 
 		int ret = codec_init(&m_codec);
 		if(ret != CODEC_ERROR_NONE)
