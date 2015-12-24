@@ -102,7 +102,6 @@ private:
 
 	eFilePushThreadDecorder m_threadDecoder;
 
-	int m_audio_dmx_fd;
 	int m_video_dmx_fd;
 	int m_pvr_fd;
 
