@@ -428,6 +428,9 @@ RESULT eAMLTSMPEGDecoder::pause()
 				codec_get_adec_state(&m_codec, &adec);
 				if (adec.channels) 
 				{
+					if (m_demux && m_demux->m_pvr_fd)
+						::ioctl(m_demux->m_pvr_fd, PVR_P0);
+
 					codec_pause(&m_codec);
 					m_state = statePause;
 					return 0;
