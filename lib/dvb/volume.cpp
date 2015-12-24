@@ -93,7 +93,8 @@ int eDVBVolumecontrol::openMixer()
 		/* Set up Decoder 0 as the main volume control. */
 		snd_mixer_selem_id_t *sid;
 		snd_mixer_selem_id_alloca(&sid);
-		snd_mixer_selem_id_set_name(sid, ALSA_VOLUME_MIXER);
+//		snd_mixer_selem_id_set_name(sid, ALSA_VOLUME_MIXER);
+		snd_mixer_selem_id_set_name(sid, "AML-DUMMY-CODEC");
 		snd_mixer_selem_id_set_index(sid, 0);
 		mainVolume = snd_mixer_find_selem(alsaMixerHandle, sid);
 	}
