@@ -94,7 +94,12 @@ eAMLTSMPEGDecoder::~eAMLTSMPEGDecoder()
 	if (m_demux && m_decoder == 0)	// Tuxtxt caching actions only on primary decoder
 		eTuxtxtApp::getInstance()->freeCache();
 
-	codec_close(&m_codec);
+	if (m_state == statePlay)
+		codec_close(&m_codec);
+	else if(m_state == statePause && m_codec.handle >= 0) {
+		codec_resume(&m_codec);
+		codec_close(&m_codec);
+	}
 }
 
 
@@ -372,8 +377,14 @@ RESULT eAMLTSMPEGDecoder::play()
 #define PVR_P1                _IO('o', 101)
 #define PVR_P2                _IO('o', 102)
 #define PVR_P3                _IO('o', 103)
-		if (m_codec.handle >= 0)
+#define PVR_P4                _IOR('o', 104, int)
+
+		if (m_codec.handle >= 0) {
 			codec_resume(&m_codec);
+			
+			if (m_demux && m_demux->m_pvr_fd)
+				::ioctl(m_demux->m_pvr_fd, PVR_P3);
+		}
 		else {
 			if (m_demux && m_demux->m_pvr_fd)
 				::ioctl(m_demux->m_pvr_fd, PVR_P2);				
@@ -394,15 +405,37 @@ RESULT eAMLTSMPEGDecoder::pause()
 {
 	TRACE__
 	struct adec_status adec;
+	int len = 0;
+	int i;
 	
 	if (m_state == statePause)
 		return 0;
 			
 	codec_get_adec_state(&m_codec, &adec);
 	
-	if (adec.channels) 
+	if (adec.channels) {
+		if (m_demux && m_demux->m_pvr_fd)
+			::ioctl(m_demux->m_pvr_fd, PVR_P0);
+			
 		codec_pause(&m_codec);
+	}
 	else {
+		if (m_demux && m_demux->m_pvr_fd)
+			::ioctl(m_demux->m_pvr_fd, PVR_P4, &len);
+				
+		if (len) {
+			for (i = 0; i < 50; i++) {
+				codec_get_adec_state(&m_codec, &adec);
+				if (adec.channels) 
+				{
+					codec_pause(&m_codec);
+					m_state = statePause;
+					return 0;
+				}
+				usleep(10000);
+			}		
+		}
+		
 		if (m_demux && m_demux->m_pvr_fd)
 			::ioctl(m_demux->m_pvr_fd, PVR_P0);
 			
