@@ -1,6 +1,13 @@
 installdir = $(pkglibdir)/python/Plugins/Extensions/StartKodi
 
-install_PYTHON =	\
+SUBDIRS = meta
+
+install_PYTHON = \
 	__init__.py \
-	plugin.py \
-	installsomething.py
+	installsomething.py \
+	plugin.py
+
+
+dist_install_DATA = kodi.png
+
+

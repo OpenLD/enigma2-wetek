@@ -17,32 +17,38 @@ from Plugins.Extensions.StartKodi.installsomething import InstallSomething
 
 
 
-class StartKodi(Screen):
+class StartKodi2(Screen):
 
-	kodi_name = "wetek-kodi"
+	kodi_name = "kodi-amlogic"
 	kodineeds = 200             # TODO: check real needs, more likely to be ~ 300MB
 	caninstall = False
 	isinstalled = False
 
 	skin = """
-		<screen position="150,200" size="450,200" title="Start Kodi" >
-			<widget name="text" position="0,0" size="550,80" font="Regular;20" />
-			<widget name="freespace_label" position="10,100" size="290,25" font="Regular;20" />
-			<widget name="installed_label" position="10,125" size="290,25" font="Regular;20" />
-			<widget name="freespace" position="300,100" size="50,25" font="Regular;20" />
-			<widget name="installed" position="300,125" size="50,25" font="Regular;20" />
+		<screen position="center,center" size="500,200" title="Start Kodi">
+		<widget name="text" position="30,30" size="360,25" font="Regular;25" />
+		<widget name="sd_label" position="30,100" size="310,25" font="Regular;20" />
+		<widget name="freespace_label" position="30,125" size="310,25" font="Regular;20" />
+		<widget name="installed_label" position="30,150" size="310,25" font="Regular;20" />
+		<widget name="sd" position="340,100" size="150,25" font="Regular;20" />
+		<widget name="freespace" position="340,125" size="150,25" font="Regular;20" />
+		<widget name="installed" position="340,150" size="150,25" font="Regular;20" />
 		</screen>"""
 	def __init__(self, session, args = 0):
 		self.session = session
 		Screen.__init__(self, session)
 
+		freembsd = str(self.getFreeSD())
 		freemb = str(self.getFreeNand()) 
 		isInstalled = str(self.isKodiInstalled())
 
-		self["text"] = Label(_("\n   Please press OK to start Kodi..."))
-		self["freespace_label"] = Label(_("Free space in MB:"))
+		self["text"] = Label(_("Please press OK to start Kodi..."))
+		self["sd_label"] = Label(_("Kodi/extra partition free space:"))
+		self["freespace_label"] = Label(_("System partition free space:"))
 		self["installed_label"] = Label(_("Kodi installed:"))
-		self["freespace"] = Label(freemb)
+
+		self["sd"] = Label(freembsd + " MB")
+		self["freespace"] = Label(freemb + " MB")
 		self["installed"] = Label(isInstalled)
 
 		self["actions"] = ActionMap(["OkCancelActions"],
@@ -56,7 +62,6 @@ class StartKodi(Screen):
 		self.onShown.remove(self.onFirstShown)   ### avoid perpetual installs
 		if (self.isinstalled):
 			self["text"] = Label(_("\n   Please press OK to start Kodi..."))
-			os.system("touch /etc/.kodistart")
 		elif (self.caninstall is False):
 			self["text"] = Label(_("\n  WARNING: \n  There is not enough space to install Kodi!"))
 		else:
@@ -81,9 +86,17 @@ class StartKodi(Screen):
 			os.system("touch /etc/.kodistart")      # but enigma2.sh checks for /usr/bin/xbmc 
 
 
-### TODO: touch(es) should go here
+### TODO: done touch(es) should go here
 	def ok(self):
 		if (self.isinstalled):
+#			self.[text] = Label(_("Starting Kodi..."))
+#			self["text"].hide()
+#			self["text"].show()
+#			StartKodi2.already_shown = False
+#			StartKodi2.hide(self)
+#			StartKodi2.show(self)
+#			StartKodi2.update(self)
+			os.system("touch /etc/.kodistart")
 			quitMainloop(3)
 		else:
 			self.close()
@@ -108,9 +121,22 @@ class StartKodi(Screen):
 		#self["Use in %"].setText("Use: %s" % c[4])
 		#self["Partition"].setText("Partition: %s" % c[0])
 
+### TODO: check if partition exists check portability (busybox vs coreutils)
+	def getFreeSD(self):
+#		os.system('sync ; sync ; sync' )
+		sizeread = os.popen("df | grep %s | tr -s ' '" % 'uSDextra')
+		c = sizeread.read().strip().split(" ")
+		sizeread.close()
+		if os.path.exists("/media/uSDextra"): 
+			free = int(c[3])/1024
+		else:
+			free = "Not available" 
+		return free  
+
+
 ### not very clever...
 	def isKodiInstalled(self):
-		if os.path.exists("/usr/bin/kodi"):
+		if os.path.exists("/usr/lib/kodi/kodi.bin"):
 			self.isinstalled = True
 			return True
 		else:
@@ -144,7 +170,7 @@ class SysMessage(Screen):
 
 ### MENU service stuff
 def main(session, **kwargs):
-	session.open(StartKodi)
+	session.open(StartKodi2)
 
 def menu(menuid, **kwargs):
 	if menuid == "mainmenu":
