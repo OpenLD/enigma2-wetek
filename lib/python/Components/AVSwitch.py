@@ -164,9 +164,13 @@ class AVSwitch:
 
 		mode_etc = None
 		if os.path.exists('/proc/stb/video/videomode_50hz') and getBoxType() not in ('gb800solo', 'gb800se', 'gb800ue'):
-			f = open("/proc/stb/video/videomode_50hz", "w")
-			f.write(mode_50)
-			f.close()
+			try:
+				f = open("/proc/stb/video/videomode_50hz", "w")
+				f.write(mode_50)
+				f.close()
+			except IOError:
+				print "setting videomode_50hz failed."
+
 		if os.path.exists('/proc/stb/video/videomode_60hz') and getBoxType() not in ('gb800solo', 'gb800se', 'gb800ue'):
 			try:
 				f = open("/proc/stb/video/videomode_60hz", "w")
@@ -287,9 +291,12 @@ class AVSwitch:
 
 	def setAspect(self, cfgelement):
 		print "[VideoMode] setting aspect: %s" % cfgelement.value
-		f = open("/proc/stb/video/aspect", "w")
-		f.write(cfgelement.value)
-		f.close()
+		try:
+			f = open("/proc/stb/video/aspect", "w")
+			f.write(cfgelement.value)
+			f.close()
+		except IOError:
+			print "setting aspect failed."
 
 	def setWss(self, cfgelement):
 		if not cfgelement.value:
@@ -304,9 +311,12 @@ class AVSwitch:
 
 	def setPolicy43(self, cfgelement):
 		print "[VideoMode] setting policy: %s" % cfgelement.value
-		f = open("/proc/stb/video/policy", "w")
-		f.write(cfgelement.value)
-		f.close()
+		try:
+			f = open("/proc/stb/video/policy", "w")
+			f.write(cfgelement.value)
+			f.close()
+		except IOError:
+			print "setting policy43 failed."
 
 	def setPolicy169(self, cfgelement):
 		if os.path.exists("/proc/stb/video/policy2"):
