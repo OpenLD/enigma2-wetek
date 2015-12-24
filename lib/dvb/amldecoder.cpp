@@ -61,7 +61,7 @@ DEFINE_REF(eAMLTSMPEGDecoder);
 eAMLTSMPEGDecoder::eAMLTSMPEGDecoder(eDVBDemux *demux, int decoder)
 	: m_demux(demux),
 		m_vpid(-1), m_vtype(-1), m_apid(-1), m_atype(-1), m_pcrpid(-1), m_textpid(-1),
-		m_changed(0), m_decoder(decoder), m_video_clip_fd(-1), m_showSinglePicTimer(eTimer::create(eApp))
+		m_changed(0), m_decoder(decoder), m_radio_pic_on(0), m_video_clip_fd(-1), m_showSinglePicTimer(eTimer::create(eApp))
 {
 	TRACE__
 	if (m_demux)
@@ -71,15 +71,24 @@ eAMLTSMPEGDecoder::eAMLTSMPEGDecoder(eDVBDemux *demux, int decoder)
 	memset(&m_codec, 0, sizeof(codec_para_t ));
 	CONNECT(m_showSinglePicTimer->timeout, eAMLTSMPEGDecoder::finishShowSinglePic);
 	m_state = stateStop;
+	
+	if (m_demux && m_decoder == 0)	// Tuxtxt caching actions only on primary decoder
+		eTuxtxtApp::getInstance()->initCache();
+		
 }
 
 eAMLTSMPEGDecoder::~eAMLTSMPEGDecoder()
 {
 	TRACE__
-	finishShowSinglePic();
+	if (m_radio_pic_on)
+		finishShowSinglePic();
+		
  	m_vpid = m_apid = m_pcrpid = m_textpid = pidNone;
 	m_changed = -1;
 	setState();
+	
+	if (m_demux && m_decoder == 0)	// Tuxtxt caching actions only on primary decoder
+		eTuxtxtApp::getInstance()->freeCache();
 
 	codec_close(&m_codec);
 }
@@ -306,13 +315,22 @@ RESULT eAMLTSMPEGDecoder::play()
 		/* reuse osdBlank for blackout_policy test    */
 		/* arg. value:				      */
 		/*  1 - on channel change put black frame     */
-		/*  0 - on channel change keep previous frame */
-		osdBlank("/sys/class/video/blackout_policy", 1);
-
-		m_codec.noblock = 0;
-		m_codec.has_video = 1;
-		m_codec.video_pid = m_vpid;
-		eDebug("[eAMLTSMPEGDecoder::play] Video PID: %d",m_codec.video_pid);
+		/*  0 - on channel change keep previous frame */		
+		osdBlank("/sys/class/video/blackout_policy", 0);
+		
+		if(m_radio_pic.length())
+			showSinglePic(m_radio_pic.c_str());
+		
+		if (m_radio_pic_on)
+			finishShowSinglePic();
+			
+		m_codec.has_video = 0;
+		
+		if ((m_vpid >= 0) && (m_vpid < 0x1FFF)) {
+			m_codec.has_video = 1;
+			m_codec.video_pid = m_vpid;
+			osdBlank("/sys/class/video/blackout_policy", 1);
+		}
 		m_codec.has_audio = 1;
 		m_codec.audio_pid = m_apid;
 		m_codec.audio_channels = 2;
@@ -391,7 +409,24 @@ void eAMLTSMPEGDecoder::demux_event(int event)
 RESULT eAMLTSMPEGDecoder::getPTS(int what, pts_t &pts)
 {
 	TRACE__
-	return 0;
+	if (m_codec.handle >= 0)
+	{
+		if (what == 0) /* auto */
+			what = m_codec.has_video ? 1 : 2;
+
+		if (what == 1) /* video */
+		{			
+			pts = codec_get_vpts(&m_codec);		
+			return 0;
+		}
+
+		if (what == 2) /* audio */
+		{			
+			pts = codec_get_apts(&m_codec);
+			return 0;
+		}
+	}
+	return -1;
 }
 
 RESULT eAMLTSMPEGDecoder::setRadioPic(const std::string &filename)
@@ -404,12 +439,88 @@ RESULT eAMLTSMPEGDecoder::setRadioPic(const std::string &filename)
 RESULT eAMLTSMPEGDecoder::showSinglePic(const char *filename)
 {
 	TRACE__
+
+	if (m_decoder == 0)
+	{
+		eDebug("showSinglePic %s", filename);
+		int f = open(filename, O_RDONLY);
+		if (f >= 0)
+		{
+			int ret;
+			struct stat s;
+			fstat(f, &s);
+#if defined(__sh__) // our driver has a different behaviour for iframes
+			if (m_video_clip_fd >= 0)
+				finishShowSinglePic();
+#endif
+
+			m_codec.has_video = 1;	
+			m_codec.has_audio = 0;	
+			m_codec.stream_type = STREAM_TYPE_ES_VIDEO;
+			ret = codec_init(&m_codec);
+    		if(ret == CODEC_ERROR_NONE)		
+			{
+				bool seq_end_avail = false;
+				size_t pos=0;
+				unsigned char pes_header[] = { 0x00, 0x00, 0x01, 0xE0, 0x00, 0x00, 0x80, 0x80, 0x05, 0x21, 0x00, 0x01, 0x00, 0x01 };
+				unsigned char seq_end[] = { 0x00, 0x00, 0x01, 0xB7 };
+				unsigned char iframe[s.st_size];
+				unsigned char stuffing[8192];
+				int streamtype;
+				memset(stuffing, 0, 8192);
+				read(f, iframe, s.st_size);
+				
+				setAvsyncEnable(0);
+				m_radio_pic_on = 1;
+				
+				while(pos <= (s.st_size-4) && !(seq_end_avail = (!iframe[pos] && !iframe[pos+1] && iframe[pos+2] == 1 && iframe[pos+3] == 0xB7)))
+					++pos;
+				if ((iframe[3] >> 4) != 0xE) // no pes header
+					writeAll(m_codec.handle, pes_header, sizeof(pes_header));
+				else
+					iframe[4] = iframe[5] = 0x00;
+				writeAll(m_codec.handle, iframe, s.st_size);
+				if (!seq_end_avail)
+					write(m_codec.handle, seq_end, sizeof(seq_end));
+				writeAll(m_codec.handle, stuffing, 8192);
+#if not defined(__sh__)
+				m_showSinglePicTimer->start(150, true);
+#endif		
+			}
+			close(f);
+		}
+		else
+		{
+			eDebug("couldnt open %s", filename);
+			return -1;
+		}
+	}
+	else
+	{
+		eDebug("only show single pics on first decoder");
+		return -1;
+	}
+
 	return 0;
 }
 
 void eAMLTSMPEGDecoder::finishShowSinglePic()
 {
 	TRACE__
+	int ret;
+	struct buf_status vbuf;
+	
+	if (m_codec.handle >= 0 && m_radio_pic_on) {
+		do {
+			ret = codec_get_vbuf_state(&m_codec, &vbuf);
+			if (ret != 0) 				
+				goto error;		
+		} while (vbuf.data_len > 0x100);
+error:
+		usleep(200000);
+		codec_close(&m_codec);		
+		m_radio_pic_on = 0;
+	}
 }
 
 RESULT eAMLTSMPEGDecoder::connectVideoEvent(const Slot1<void, struct videoEvent> &event, ePtr<eConnection> &conn)
