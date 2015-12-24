@@ -130,22 +130,22 @@ void eRCDeviceInputDev::handleCode(long rccode)
 			ev->code = KEY_BLUE;
 		}
 		if (ev->code == KEY_5) {
-			ev->code = KEY_PLAYPAUSE;
+			ev->code = KEY_PREVIOUS;
 		}
 		if (ev->code == KEY_6) {
-			ev->code = KEY_STOP;
+			ev->code = KEY_NEXT;
 		}
 		if (ev->code == KEY_7) {
-			ev->code = KEY_BACK;
+			ev->code = KEY_REWIND;
 		}
 		if (ev->code == KEY_8) {
-			ev->code = KEY_FORWARD;
+			ev->code = KEY_STOP;
 		}
 		if (ev->code == KEY_9) {
-			ev->code = KEY_AUDIO;
+			ev->code = KEY_FASTFORWARD;
 		}
 		if (ev->code == KEY_0) {
-			ev->code = KEY_TV;
+			ev->code = KEY_PLAYPAUSE;
 		}
 	}
 /*
@@ -160,9 +160,9 @@ void eRCDeviceInputDev::handleCode(long rccode)
 	}
 #endif
 
-#if KEY_F1_TO_KEY_LIST
+#if KEY_F1_TO_KEY_MEDIA
 	if (ev->code == KEY_F1) {
-		ev->code = KEY_LIST;
+		ev->code = KEY_MEDIA;
 	}
 #endif
 
@@ -184,9 +184,9 @@ void eRCDeviceInputDev::handleCode(long rccode)
 	}
 #endif
 
-#if KEY_F6_TO_KEY_TEXT
-	if (ev->code == KEY_F6) {
-		ev->code = KEY_TEXT;
+#if KEY_ENTER_TO_KEY_OK
+	if (ev->code == KEY_ENTER) {
+		ev->code = KEY_OK;
 	}
 #endif
 
