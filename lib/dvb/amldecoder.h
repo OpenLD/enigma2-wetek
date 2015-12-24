@@ -102,7 +102,6 @@ private:
 
 	eFilePushThreadDecorder m_threadDecoder;
 
-	int m_video_dmx_fd;
 	int m_pvr_fd;
 
 
@@ -119,11 +118,7 @@ private:
 
 	int osdBlank(char *path,int cmd);
 	int setAvsyncEnable(int enable);
-	int setDisplayAxis(int recovery);
-	int setStbSourceHiu();
-	int setStbDemuxSourceHiu();
-	int setStbSource(int source);	
-	int parseParameter(const char *para, int para_num, int *result);
+	int setStbSource(int source);
 	codec_para_t m_codec;
 
 public:

@@ -50,8 +50,6 @@ extern "C" {
 
 #define TRACE__ eDebug("%s(%d): ",__PRETTY_FUNCTION__,__LINE__);
 
-//#define SHOW_WRITE_TIME
-
 static void signal_handler(int x)
 {
 	TRACE__;
@@ -161,7 +159,7 @@ void eFilePushThreadDecorder::thread()
 //  Try with prio 50 (0..99) probably to high, and SCHED_RR as SCHED_FIFO may be too punishing
 //  In the worst case scenario try cpu affinity and switch to other core
 	sched_param sch;
-	int policy; 
+	int policy;
 //    pthread_getschedparam(native_handle(), &policy, &sch);
 	pthread_getschedparam(pthread_self(), &policy, &sch);
 	sch.sched_priority = 50;
@@ -236,7 +234,7 @@ void eFilePushThreadDecorder::thread()
 					continue;
 				else
 				{
-					ccs = 0;				
+					ccs = 0;
 					for (isize = 0; isize < len_ts; isize += 188)
 					{
 						if (m_buffer[isize + 3] & 0xC0)
@@ -264,7 +262,7 @@ void eFilePushThreadDecorder::thread()
 								// start a new batch in next cycle
 								ccs = 0;
 
-								// decrypt even packages 
+								// decrypt even packages
 								if (cs_fill_even)
 								{
 									cs_tsbbatch_even[cs_fill_even].data = NULL;
@@ -294,7 +292,7 @@ void eFilePushThreadDecorder::thread()
 							dvbcsa_bs_decrypt(cs_key_even, cs_tsbbatch_even, 184);
 							cs_fill_even = 0;
 						}
-						
+
 						// decrypt odd packages
 						if (cs_fill_odd)
 						{
@@ -310,12 +308,12 @@ void eFilePushThreadDecorder::thread()
 					do{
 						ret = codec_write(mp_codec, m_buffer + isize, len_ts - isize);
 						if (ret < 0) {
-							eDebug("[eFilePushThreadDecorder] codec write data failed, errno %d", errno);							
+							eDebug("[eFilePushThreadDecorder] codec write data failed, errno %d", errno);
 						}
-						else {						
+						else {
 							isize += ret;
 						}
-					}while(isize < len_ts);				
+					}while(isize < len_ts);
 					len_ts = 0;
 				}
 			}
@@ -398,11 +396,6 @@ eAMLTSMPEGDecoder::~eAMLTSMPEGDecoder()
 	m_changed = -1;
 	setState();
 
-	if(0 < m_video_dmx_fd)
-	{
-		::close(m_video_dmx_fd);
-		m_video_dmx_fd = -1;
-	}
 	if(0 < m_pvr_fd)
 	{
 		eDebug("%s() Closing DVR0 device ",__PRETTY_FUNCTION__);
@@ -410,18 +403,6 @@ eAMLTSMPEGDecoder::~eAMLTSMPEGDecoder()
 		eDebug("%s() result %d ",__PRETTY_FUNCTION__,ret);
 		m_pvr_fd = -1;
 	}
-
-#if 0
-	struct buf_status vbuf;
-	do {
-		int ret = codec_get_vbuf_state(&m_codec, &vbuf);
-		if (ret != 0) {
-			eDebug("codec_get_vbuf_state error: %x", -ret);
-			break;
-		}
-	} while (vbuf.data_len > 0x100);
-#endif
-
 	codec_close(&m_codec);
 
 }
@@ -490,31 +471,7 @@ RESULT eAMLTSMPEGDecoder::setVideoPID(int vpid, int type)
 			break;
 		}
 		eDebug("%s() vpid=%d, type=%d",__PRETTY_FUNCTION__, vpid, type);
-		char filename[32];
-		snprintf(filename, sizeof(filename), "/dev/dvb/adapter%d/demux%d", 0, 0);
-		m_video_dmx_fd =  ::open(filename, O_RDWR | O_CLOEXEC);
-		if(m_video_dmx_fd < 0)
-		{
-			perror("DEMUX DEVICE");
-			eDebug("%s() unable to open Demuxer device",__PRETTY_FUNCTION__);
 		}
-		else
-		{
-#if 0		
-			struct dmx_pes_filter_params pesFilterParams;
-			pesFilterParams.pid = vpid;
-			pesFilterParams.input = DMX_IN_FRONTEND;
-			pesFilterParams.output = DMX_OUT_TS_TAP;
-			pesFilterParams.pes_type = DMX_PES_OTHER;
-			pesFilterParams.flags = DMX_IMMEDIATE_START;
-			if (ioctl(m_video_dmx_fd, DMX_SET_PES_FILTER, &pesFilterParams) < 0)
-			{
-				perror("DMX_SET_PES_FILTER");
-				eDebug("%s() VPID unable to set DMX_SET_PES_FILTER",__PRETTY_FUNCTION__);
-			}
-#endif			
-		}
-	}
 	return 0;
 }
 
@@ -592,18 +549,18 @@ RESULT eAMLTSMPEGDecoder::setSyncPCR(int pcrpid)
 	int fd;
 	char *path = "/sys/class/tsdemux/pcr_pid";
 	char  bcmd[16];
-	
+
 	TRACE__
 	eDebug("eAMLTSMPEGDecoder::setSyncPCR %d",pcrpid);
 	m_pcrpid = pcrpid;
-	
+
 	fd = open(path, O_CREAT | O_RDWR | O_TRUNC, 0644);
 	if (fd >= 0) {
 		sprintf(bcmd, "%d", pcrpid);
 		write(fd, bcmd, strlen(bcmd));
 		close(fd);
 	}
-	
+
 	return 0;
 }
 
@@ -658,67 +615,10 @@ int eAMLTSMPEGDecoder::setAvsyncEnable(int enable)
 	return -1;
 }
 
-int eAMLTSMPEGDecoder::setDisplayAxis(int recovery)
-{
-	int fd;
-	char *path = "/sys/class/display/axis";
-	char str[128];
-	fd = open(path, O_CREAT|O_RDWR | O_TRUNC, 0644);
-	if (fd >= 0) {
-		if (!recovery) {
-			read(fd, str, 128);
-			printf("read axis %s, length %d\n", str, strlen(str));
-		}
-		if (recovery) {
-			sprintf(str, "%d %d %d %d %d %d %d %d",
-				m_axis[0],m_axis[1], m_axis[2], m_axis[3], m_axis[4], m_axis[5], m_axis[6], m_axis[7]);
-		} else {
-			sprintf(str, "2048 %d %d %d %d %d %d %d",
-				m_axis[1], m_axis[2], m_axis[3], m_axis[4], m_axis[5], m_axis[6], m_axis[7]);
-		}
-		write(fd, str, strlen(str));
-		close(fd);
-		return 0;
-	}
-	return -1;
-}
-
-int eAMLTSMPEGDecoder::setStbSourceHiu()
-{
-	int fd;
-	char *path = "/sys/class/stb/source";
-	char  bcmd[16];
-	fd = open(path, O_CREAT | O_RDWR | O_TRUNC, 0644);
-	if (fd >= 0) {
-		sprintf(bcmd, "%s", "hiu");
-		write(fd, bcmd, strlen(bcmd));
-		close(fd);
-		printf("set stb source to hiu!\n");
-		return 0;
-	}
-	return -1;
-}
-
-int eAMLTSMPEGDecoder::setStbDemuxSourceHiu()
-{
-	int fd;
-	char *path = "/sys/class/stb/demux1_source"; // use demux0 for record, and demux1 for playback
-	char  bcmd[16];
-	fd = open(path, O_CREAT | O_RDWR | O_TRUNC, 0644);
-	if (fd >= 0) {
-		sprintf(bcmd, "%s", "hiu");
-		write(fd, bcmd, strlen(bcmd));
-		close(fd);
-		printf("set stb demux source to hiu!\n");
-		return 0;
-	}
-	return -1;
-}
-
 int eAMLTSMPEGDecoder::setStbSource(int source)
 {
 	int fd;
-	char *path = "/sys/class/tsdemux/stb_source"; 
+	char *path = "/sys/class/tsdemux/stb_source";
 	char  bcmd[16];
 	fd = open(path, O_CREAT | O_RDWR | O_TRUNC, 0644);
 	if (fd >= 0) {
@@ -729,41 +629,6 @@ int eAMLTSMPEGDecoder::setStbSource(int source)
 		return 0;
 	}
 	return -1;
-}
-
-int eAMLTSMPEGDecoder::parseParameter(const char *para, int para_num, int *result)
-{
-	char *endp;
-	const char *startp = para;
-	int *out = result;
-	int len = 0, count = 0;
-
-	if (!startp) {
-		return 0;
-	}
-
-	len = strlen(startp);
-
-	do {
-		//filter space out
-		while (startp && (isspace(*startp) || !isgraph(*startp)) && len) {
-			startp++;
-			len--;
-		}
-
-		if (len == 0) {
-			break;
-		}
-
-		*out++ = strtol(startp, &endp, 0);
-
-		len -= endp - startp;
-		startp = endp;
-		count++;
-
-	} while ((endp) && (count < para_num) && (len > 0));
-
-	return count;
 }
 
 
