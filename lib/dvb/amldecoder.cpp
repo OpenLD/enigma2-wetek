@@ -811,69 +811,44 @@ RESULT eAMLTSMPEGDecoder::play()
 		}
 		else
 		{
-			char* fb1_path = "/sys/class/graphics/fb1/blank";
-			osdBlank(fb1_path,0);
-			m_codec.noblock = 0;
-			m_codec.has_video = 1;
-			m_codec.video_pid = m_vpid;
-			eDebug("[eAMLTSMPEGDecoder::play] Video PID: %d",m_codec.video_pid);
-			m_codec.has_audio = 1;
-			m_codec.audio_pid = m_apid;
-			m_codec.audio_channels = 2;
-			m_codec.audio_samplerate = 48000;
-			m_codec.audio_info.channels = 2;
-			m_codec.audio_info.sample_rate = m_codec.audio_samplerate;
-			m_codec.audio_info.valid = 0;
-			m_codec.stream_type = STREAM_TYPE_TS;
-
-			setStbSource(0);
-						
-			int ret = codec_init(&m_codec);
-			if(ret != CODEC_ERROR_NONE)
+			if ( ((m_apid >= 0) && (m_apid < 0x1FFF)) &&
+				 (((m_vpid >= 0) && (m_vpid < 0x1FFF)) || m_radio_pic.length()))
 			{
-				eDebug("[eAMLTSMPEGDecoder::play] Amlogic CODEC codec_init failed  !!!!!");
+
+				char* fb1_path = "/sys/class/graphics/fb1/blank";
+				osdBlank(fb1_path,0);
+				m_codec.noblock = 0;
+				m_codec.has_video = 1;
+				m_codec.video_pid = m_vpid;
+				eDebug("[eAMLTSMPEGDecoder::play] Video PID: %d",m_codec.video_pid);
+				m_codec.has_audio = 1;
+				m_codec.audio_pid = m_apid;
+				m_codec.audio_channels = 2;
+				m_codec.audio_samplerate = 48000;
+				m_codec.audio_info.channels = 2;
+				m_codec.audio_info.sample_rate = m_codec.audio_samplerate;
+				m_codec.audio_info.valid = 0;
+				m_codec.stream_type = STREAM_TYPE_TS;
+
+				setStbSource(0);
+
+				int ret = codec_init(&m_codec);
+				if(ret != CODEC_ERROR_NONE)
+				{
+					eDebug("[eAMLTSMPEGDecoder::play] Amlogic CODEC codec_init failed  !!!!!");
+				}
+				else
+				{
+					eDebug("[eAMLTSMPEGDecoder::play] Amlogic CODEC codec_init success !!!!!");
+					setAvsyncEnable(1);
+				}
+				m_threadDecoder.start(m_pvr_fd,&m_codec);
 			}
 			else
 			{
-				eDebug("[eAMLTSMPEGDecoder::play] Amlogic CODEC codec_init success !!!!!");
-				
-#if 0				
-				struct buf_status buf_stat;
-				if(0 == codec_get_vbuf_state(&m_codec, &buf_stat))
-				{
-					eDebug("[eAMLTSMPEGDecoder::play] Video buffer information size: %d data_len: %d free_len: %d",
-						buf_stat.size,
-						buf_stat.data_len,
-						buf_stat.free_len);
-				}
-
-				if(0 == codec_get_abuf_state(&m_codec, &buf_stat))
-				{
-					eDebug("[eAMLTSMPEGDecoder::play] Audio buffer information size: %d data_len: %d free_len: %d",
-						buf_stat.size,
-						buf_stat.data_len,
-						buf_stat.free_len);
-				}
-
-				// make sure we are not stuck in pause (amcodec bug)
-				ret = codec_resume(&m_codec);
-				eDebug("[eAMLTSMPEGDecoder::play] codec_resume: %d",ret);
-#if 0
-				ret = codec_set_cntl_mode(&m_codec, 0x00);
-				eDebug("[eAMLTSMPEGDecoder::play] codec_set_cntl_mode: %d",ret);
-#define PTS_FREQ    90000
-#define AV_SYNC_THRESH    PTS_FREQ*30
-				ret = codec_set_cntl_avthresh(&m_codec,AV_SYNC_THRESH);
-				eDebug("[eAMLTSMPEGDecoder::play] codec_set_cntl_avthresh: %d",ret);
-				ret = codec_set_cntl_syncthresh(&m_codec, 0);
-				eDebug("[eAMLTSMPEGDecoder::play] codec_set_cntl_syncthresh: %d",ret);
-				setAvsyncEnable(0);
-				setAvsyncEnable(1);
-#endif
-#endif
-				setAvsyncEnable(1);
+				eDebug("[eAMLTSMPEGDecoder::play] Invalid PIDs given I refuse to start !!!!!");
 			}
-			m_threadDecoder.start(m_pvr_fd,&m_codec);
+
 			break;
 		}
 		usleep(50000);
