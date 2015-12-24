@@ -31,49 +31,6 @@ extern "C" {
 class eSocketNotifier;
 
 
-
-class eFilePushThreadDecorder: public eThread, public Object
-{
-public:
-	eFilePushThreadDecorder(size_t buffersize=10*188*1024 /* this is the default kernel buffer size */);
-	virtual ~eFilePushThreadDecorder();
-	void thread();
-	void stop();
-	void start(int sourcefd,codec_para_t* codec);
-
-	enum { evtEOF, evtReadError, evtWriteError, evtUser, evtStopped };
-	Signal1<void,int> m_event;
-
-	void sendEvent(int evt);
-protected:
-	// Called when terminating the recording thread. Allows to clean up memory and
-	// flush buffers, terminate outstanding IO requests.
-	virtual void flush();
-
-	int m_fd_source;
-	int m_ca_fd;
-	size_t m_buffersize;
-	unsigned char* m_buffer;
-	unsigned char* m_pesbuffer;
-	unsigned int m_overflow_count;
-private:
-	/* soft csa */
-	int cs;
-	struct dvbcsa_bs_batch_s *cs_tsbbatch_even;
-	struct dvbcsa_bs_batch_s *cs_tsbbatch_odd;
-	struct dvbcsa_bs_key_s *cs_key_even;
-	struct dvbcsa_bs_key_s *cs_key_odd;
-	/* */
-
-	codec_para_t* mp_codec;
-	int m_stop;
-	eFixedMessagePump<int> m_messagepump;
-	void recvEvent(const int &evt);
-};
-
-
-
-
 class eAMLTSMPEGDecoder: public Object, public iTSMPEGDecoder
 {
 	DECLARE_REF(eAMLTSMPEGDecoder);
@@ -99,10 +56,6 @@ private:
 	int setState();
 	ePtr<eConnection> m_demux_event_conn;
 	ePtr<eConnection> m_video_event_conn;
-
-	eFilePushThreadDecorder m_threadDecoder;
-
-	int m_pvr_fd;
 
 
 	void demux_event(int event);
