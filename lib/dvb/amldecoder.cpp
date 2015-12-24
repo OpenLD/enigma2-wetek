@@ -302,9 +302,10 @@ RESULT eAMLTSMPEGDecoder::play()
 	if ( ((m_apid >= 0) && (m_apid < 0x1FFF)) &&
 		 (((m_vpid >= 0) && (m_vpid < 0x1FFF)) || m_radio_pic.length()))
 	{
-
+#if 0
 		char* fb1_path = "/sys/class/graphics/fb1/blank";
 		osdBlank(fb1_path,0);
+#endif
 		m_codec.noblock = 0;
 		m_codec.has_video = 1;
 		m_codec.video_pid = m_vpid;
