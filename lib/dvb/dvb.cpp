@@ -157,7 +157,7 @@ eDVBResourceManager::eDVBResourceManager()
 	else if (!strncmp(tmp, "ebox7358\n", rd))
 		m_boxtype = DM800SE;
 	else if (!strncmp(tmp, "wetekplay\n", rd))
-		m_boxtype = WETEKPLAY;
+		m_boxtype = WETEKPLAY; 
 	else {
 		eDebug("boxtype detection via /proc/stb/info not possible... use fallback via demux count!\n");
 		if (m_demux.size() == 3)
@@ -2419,4 +2419,3 @@ RESULT eCueSheet::connectEvent(const Slot1<void,int> &event, ePtr<eConnection> &
 	connection = new eConnection(this, m_event.connect(event));
 	return 0;
 }
-
