@@ -2419,3 +2419,4 @@ RESULT eCueSheet::connectEvent(const Slot1<void,int> &event, ePtr<eConnection> &
 	connection = new eConnection(this, m_event.connect(event));
 	return 0;
 }
+
