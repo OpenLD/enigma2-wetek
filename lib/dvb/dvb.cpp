@@ -2,6 +2,7 @@
 #include <linux/dvb/dmx.h>
 #include <linux/dvb/version.h>
 
+#include <lib/base/cfile.h>
 #include <lib/base/eerror.h>
 #include <lib/base/filepush.h>
 #include <lib/base/wrappers.h>
@@ -80,7 +81,7 @@ eDVBResourceManager::eDVBResourceManager()
 		instance = this;
 
 	int num_adapter = 1;
-	while (eDVBAdapterLinux::exist(num_adapter) && access("/usr/bin/spa-usbtuner", F_OK) != 0)
+	while (eDVBAdapterLinux::exist(num_adapter))
 	{
 		if (eDVBAdapterLinux::isusb(num_adapter))
 		{
@@ -313,26 +314,37 @@ eDVBUsbAdapter::eDVBUsbAdapter(int nr)
 	char filename[256];
 	char name[128] = {0};
 	int vtunerid = nr - 1;
+	char *line;
+	size_t line_size = 256;
 
 	pumpThread = 0;
 
 	int num_fe = 0;
-	while (1)
+	
+	demuxFd = vtunerFd = pipeFd[0] = pipeFd[1] = -1;
+
+	/* we need to know exactly what frontend is internal or initialized! */
+	CFile f("/proc/bus/nim_sockets", "r");
+	if (!f)
 	{
-		/*
-		 * Some frontend devices might have been just created, if
-		 * they are virtual (vtuner) frontends.
-		 * In that case, we cannot be sure the devicenodes are available yet.
-		 * So it is safer to scan for sys entries, than for device nodes
-		 */
-		snprintf(filename, sizeof(filename), "/sys/class/dvb/dvb0.frontend%d", num_fe);
-		if (::access(filename, X_OK) < 0) break;
-		num_fe++;
+		eDebug("Cannot open /proc/bus/nim_sockets");
+		goto error;
 	}
+	
+	line = (char*) malloc(line_size);
+	while (getline(&line, &line_size, f) != -1)
+	{
+		int num_fe_tmp;
+		if (sscanf(line, "%*[ \t]Frontend_Device: %d", &num_fe_tmp) == 1)
+		{
+			if (num_fe_tmp > num_fe)
+				num_fe = num_fe_tmp;
+		}
+	}
+	free(line);
+	num_fe++;
 	snprintf(filename, sizeof(filename), "/dev/dvb/adapter0/frontend%d", num_fe);
 	virtualFrontendName = filename;
-
-	demuxFd = vtunerFd = pipeFd[0] = pipeFd[1] = -1;
 
 	/* find the device name */
 	snprintf(filename, sizeof(filename), "/sys/class/dvb/dvb%d.frontend0/device/product", nr);
@@ -610,6 +622,10 @@ void *eDVBUsbAdapter::vtunerPump()
 			if (FD_ISSET(demuxFd, &rset))
 			{
 				ssize_t size = singleRead(demuxFd, buffer, sizeof(buffer));
+
+				if(size < 188)
+					continue;
+
 				if (size > 0 && writeAll(vtunerFd, buffer, size) <= 0)
 				{
 					break;
@@ -1391,7 +1407,7 @@ int eDVBResourceManager::canAllocateChannel(const eDVBChannelID &channelid, cons
 	if (!simulate && m_cached_channel)
 	{
 		eDVBChannel *cache_chan = (eDVBChannel*)&(*m_cached_channel);
-		if((m_boxtype != WETEKPLAY) && (channelid==cache_chan->getChannelID()))
+		if(channelid==cache_chan->getChannelID())
 			return tuner_type_channel_default(m_list, channelid, system);
 	}
 
@@ -1466,45 +1482,6 @@ int eDVBResourceManager::canAllocateChannel(const eDVBChannelID &channelid, cons
 				}
 			}
 		}
-	}
-	else if (m_boxtype == WETEKPLAY)
-	{	
-		int n=0;
-		iDVBAdapter *adapter = fe ? fe->m_adapter : m_adapter.begin(); /* look for a demux on the same adapter as the frontend, or the first adapter for dvr playback */
-		int source = fe ? fe->m_frontend->getDVBID() : -1;
-		cap |= capHoldDecodeReference; // this is checked in eDVBChannel::getDemux
-		
-		for (; i != m_demux.end(); ++i, ++n)
-		{
-			if (fe)
-			{
-				if (!i->m_inuse && ((n == 0 && source == 0) ||
-					(n == 1 && source == 1)))
-				{				
-					if (!unused) 
-					{
-						unused = i;
-						break;
-					}					
-				}				
-				else if(i->m_adapter == adapter && 
-					i->m_demux->getSource() == source)
-				{
-					demux = new eDVBAllocatedDemux(i);
-					return 0;
-				}	
-		    }			
-			else if (n == (m_demux.size() - 1)) // always use last demux for PVR 
-			{
-				if (i->m_inuse)
-				{
-					demux = new eDVBAllocatedDemux(i);
-					return 0;
-				}
-				unused = i;
-				break;
-			}		    
-		}	
 	}
 	else
 		decremented_cached_channel_fe_usecount=NULL;
