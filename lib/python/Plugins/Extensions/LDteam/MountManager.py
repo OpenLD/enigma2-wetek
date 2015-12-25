@@ -198,7 +198,7 @@ class HddMount(Screen):
 		mypixmap = '/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/icons/dev_usbstick.png'
 		if device2.startswith('mmcblk'):
 			model = file('/sys/block/' + device2 + '/device/name').read()
-			mypixmap = '/usr/lib/enigma2/python/Plugins/Extensions/Infopanel/icons/dev_mmc.png'
+			mypixmap = '/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/icons/dev_mmc.png'
 			name = 'MMC: '
 		else:
 			model = file('/sys/block/' + device2 + '/device/model').read()
@@ -505,7 +505,7 @@ class DevicePanelConf(Screen, ConfigListScreen):
 		mypixmap = '/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/icons/dev_usbstick.png'
 		if device2.startswith('mmcblk'):
 			model = file('/sys/block/' + device2 + '/device/name').read()
-			mypixmap = '/usr/lib/enigma2/python/Plugins/Extensions/Infopanel/icons/dev_mmc.png'
+			mypixmap = '/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/icons/dev_mmc.png'
 			name = 'MMC: '
 		else:
 			model = file('/sys/block/' + device2 + '/device/model').read()
