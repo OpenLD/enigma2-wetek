@@ -392,9 +392,9 @@ class AVSwitch:
 iAVSwitch = AVSwitch()
 
 def InitAVSwitch():
-	if getBoxType() == 'vuduo' or getBoxType().startswith('ixuss'):	
+	if getBoxType() == 'vuduo' or getBoxType().startswith('ixuss'):
 		config.av.yuvenabled = ConfigBoolean(default=False)
-	else:	
+	else:
 		config.av.yuvenabled = ConfigBoolean(default=True)
 	config.av.osd_alpha = ConfigSlider(default=255, increment = 5, limits=(20,255)) # Make openLD compatible with some plugins who still use config.av.osd_alpha
 	colorformat_choices = {"cvbs": _("CVBS"), "rgb": _("RGB"), "svideo": _("S-Video")}
@@ -550,7 +550,7 @@ def InitAVSwitch():
 		config.av.hdmicolorspace.addNotifier(setHDMIColorspace)
 	else:
 		config.av.hdmicolorspace = ConfigNothing()
-		
+
 	if os.path.exists("/proc/stb/hdmi/audio_source"):
 		f = open("/proc/stb/hdmi/audio_source", "r")
 		can_audiosource = f.read().strip().split(" ")
