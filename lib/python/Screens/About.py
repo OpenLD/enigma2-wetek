@@ -41,38 +41,21 @@ def getAboutText():
 		AboutText += _("Chipset:\t %s") % about.getChipSetString() + "\n"
 
 	bogoMIPS = ""
-	if path.exists('/proc/cpuinfo'):
-		f = open('/proc/cpuinfo', 'r')
-		temp = f.readlines()
-		f.close()
-		try:
-			for lines in temp:
-				lisp = lines.split(': ')
-				if lisp[0].startswith('BogoMIPS'):
-					bogoMIPS = "" + str(int(float(lisp[1].replace('\n','')))) + ""
-					#bogoMIPS = "" + lisp[1].replace('\n','') + ""
-					break
-		except:
-			pass
+	if getBoxType() in ('wetekplay'):
+		bogoMIPS = "811"
 
 	cpuMHz = ""
-	if path.exists('/proc/cpuinfo'):
-		f = open('/proc/cpuinfo', 'r')
-		temp = f.readlines()
-		f.close()
-		try:
-			for lines in temp:
-				lisp = lines.split(': ')
-				if lisp[0].startswith('cpu MHz'):
-					#cpuMHz = "   (" +  lisp[1].replace('\n', '') + " MHz)"
-					cpuMHz = "   (" +  str(int(float(lisp[1].replace('\n', '')))) + " MHz)"
-					break
-		except:
-			pass
+	if getBoxType() in ('wetekplay'):
+		cpuMHz = " - AMLogic AML-8726 MX (1,5 GHz)"
+
+	gpuMHZ = ""
+	if getBoxType() in ('wetekplay'):
+		gpuMHZ = "Mali MP400 (Dual Core)"
 
 	AboutText += _("CPU:\t %s") % about.getCPUString() + cpuMHz + "\n"
 	AboutText += _("BogoMIPS:\t %s") % bogoMIPS + "\n"
 	AboutText += _("Cores:\t %s") % about.getCpuCoresString() + "\n"
+	AboutText += _("GPU:\t %s") % gpuMHZ + "\n"
 
 	AboutText += _("Version:\t %s") % getImageVersion() + "\n"
 	AboutText += _("Build:\t %s") % getImageBuild() + "\n"
