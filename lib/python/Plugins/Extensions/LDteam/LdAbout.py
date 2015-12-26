@@ -54,23 +54,13 @@ class LdsysInfo(Screen):
 		#f = open("/proc/stb/info/chipset",'r')
  		#text += "Chipset:\t" + about.getChipSetString() + "\n"
 		#f.close()
-		cmd = 'cat /proc/cpuinfo | grep "cpu MHz" -m 1 | awk -F ": " ' + "'{print $2}'"
-		cmd2 = 'cat /proc/cpuinfo | grep "BogoMIPS" -m 1 | awk -F ": " ' + "'{print $2}'"
-		try:
-			res = popen(cmd).read()
-			res2 = popen(cmd2).read()
-		except:
-			res = ""
-			res2 = ""
-		cpuMHz = ""
-		bogoMIPS = ""		
-		if res:
-			cpuMHz = "   \t(" + res.replace("\n", "") + " MHz)"
-		if res2:
-			bogoMIPS = "" + res2.replace("\n", "")
+		cpuMHz = " - AMLogic AML-8726 MX (1,5 GHz) (Dual Core)"
+		bogoMIPS = "811"
+		gpuMHZ = "Mali MP400 (Dual Core)"
 		f = open('/proc/cpuinfo', 'r')
 		text += "CPU: \t" +  about.getCPUString() + cpuMHz + "\n"
-		text += "BogoMIPS \t" + bogoMIPS + "\n"
+		text += "BogoMIPS: \t" + bogoMIPS + "\n"
+		text += "GPU: \t" + gpuMHZ + "\n"
  		f.close()
 		text += "\nMEMORY\n"
 		memTotal = memFree = swapTotal = swapFree = 0

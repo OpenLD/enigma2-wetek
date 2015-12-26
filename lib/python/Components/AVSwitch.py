@@ -74,15 +74,15 @@ class AVSwitch:
 		modes["HDMI"] = ["720p", "1080p", "1080i", "576p", "576i", "480p", "480i"]
 		widescreen_modes = {"720p", "1080p", "1080i"}
 	elif about.getChipSetString() in ('meson-6'):
-		modes["HDMI"] = ["720p", "1080p", "1080i"]
+		modes["HDMI"] = ["720p", "1080p", "1080i", "576p", "576i", "480p", "480i"]
 		widescreen_modes = {"720p", "1080p", "1080i"}
 	else:
 		modes["HDMI"] = ["720p", "1080i", "576p", "576i", "480p", "480i"]
 		widescreen_modes = {"720p", "1080i"}
 
 	modes["YPbPr"] = modes["HDMI"]
-	if getBoxType() in ('dm500hd', 'dm800', 'vuuno', 'vusolo', 'vusolo2', 'vuultimo', 'vuduo', 'vuduo2'):
-		modes["Scart-YPbPr"] = modes["HDMI"]
+	if getBoxType() in ('wetekplay', 'dm500hd', 'dm800', 'vuuno', 'vusolo', 'vusolo2', 'vuultimo', 'vuduo', 'vuduo2'):
+		modes["Scart-YPbPr"] = ["720p", "1080i", "1080p", "576p", "480p", "576i", "480i"]
 
 	# if modes.has_key("DVI-PC") and not getModeList("DVI-PC"):
 	# 	print "remove DVI-PC because of not existing modes"
@@ -494,7 +494,7 @@ def InitAVSwitch():
 		iAVSwitch.setAspectRatio(map[configElement.value])
 	
 	iAVSwitch.setInput("ENCODER") # init on startup
-	if (getBoxType() in ('gbquad', 'gbquadplus', 'et5x00', 'ixussone', 'ixusszero', 'axodin', 'axodinc', 'starsatlx', 'galaxym6', 'geniuse3hd', 'evoe3hd', 'axase3', 'axase3c', 'omtimussos1', 'omtimussos2', 'gb800seplus', 'gb800ueplus', 'gbultrase', 'gbultraue' , 'twinboxlcd' )) or about.getModelString() == 'et6000':
+	if (getBoxType() in ('wetekplay' 'gbquad', 'gbquadplus', 'et5x00', 'ixussone', 'ixusszero', 'axodin', 'axodinc', 'starsatlx', 'galaxym6', 'geniuse3hd', 'evoe3hd', 'axase3', 'axase3c', 'omtimussos1', 'omtimussos2', 'gb800seplus', 'gb800ueplus', 'gbultrase', 'gbultraue' , 'twinboxlcd' )) or about.getModelString() == 'et6000':
 		detected = False
 	else:
 		detected = eAVSwitch.getInstance().haveScartSwitch()
