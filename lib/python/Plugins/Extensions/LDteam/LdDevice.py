@@ -79,7 +79,7 @@ MultiContentEntryPixmapAlphaTest(pos = (0, 0), size = (80, 80), png = 2),
 		self.gO()
 	
 	def gO(self):
-		paths = ["/media/hdd","/media/usb","/media/downloads","/media/music","/media/personal","/media/photo","/media/video"]
+		paths = ["/media/hdd","/media/usb","/media/uSDextra","/media/downloads","/media/music","/media/personal","/media/photo","/media/video"]
 		for path in paths:
 			if not pathExists(path):
 				createDir(path)
