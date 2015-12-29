@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from boxbranding import getBoxType, getImageVersion
+from time import *
+from types import *
 from sys import modules
-import sys, os, time, socket, fcntl, struct
+import sys, os, time, socket, fcntl, struct, subprocess, threading, traceback, commands, datetime
+from os import system, remove as os_remove, rename as os_rename, popen, getcwd, chdir
 
 def getVersionString():
 	return getImageVersion()
@@ -178,6 +181,22 @@ def getCPUTempString():
 	except:
 		pass
 	return ""
+
+def getLoadCPUString():
+	try:
+		import commands
+		status, output = commands.getstatusoutput("top -bn1 | grep load | awk '{printf \"%.2f\", $(NF-2)}'")
+		return output.split(' ')[0]
+	except:
+		return _("unknown")
+
+def getRAMusageString():
+	try:
+		import commands
+		status, output = commands.getstatusoutput("free -m | awk 'NR==2{printf \"%s/%sMB %.2f%%\", $3,$2,$3*100/$2 }'")
+		return output.split(' ')[1]
+	except:
+		return _("unknown")
 
 # For modules that do "from About import about"
 about = modules[__name__]

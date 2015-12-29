@@ -35,36 +35,46 @@ boxtype = getBoxType()
 
 def getAboutText():
 	AboutText = ""
+
 	AboutText += _("Model:\t %s %s\n") % (getMachineBrand(), getMachineName())
 
 	if path.exists('/proc/stb/info/chipset'):
-		AboutText += _("Chipset:\t %s") % about.getChipSetString() + "\n"
+		AboutText += _("Chipset:\t %s") % str(about.getChipSetString()) + "\n"
 
 	bogoMIPS = ""
-	if getBoxType() in ('wetekplay'):
-		bogoMIPS = "811"
+	if path.exists('/proc/cpuinfo'):
+		f = open('/proc/cpuinfo', 'r')
+		temp = f.readlines()
+		f.close()
+		try:
+			for lines in temp:
+				lisp = lines.split(': ')
+				if lisp[0].startswith('BogoMIPS'):
+					bogoMIPS = "" + str(int(float(lisp[1].replace('\n','')))) + ""
+					#bogoMIPS = "" + lisp[1].replace('\n','') + ""
+					break
+		except:
+			pass
 
-	cpuMHz = ""
-	if getBoxType() in ('wetekplay'):
-		cpuMHz = " - AMLogic AML-8726 MX (1,5 GHz)"
+	cpuMHz = " - AMLogic AML-8726 MX  (1,5 GHz)"
 
-	gpuMHZ = ""
-	if getBoxType() in ('wetekplay'):
-		gpuMHZ = "Mali MP400 (Dual Core)"
+	gpuMHZ = "Mali MP400 (Dual Core)"
 
-	AboutText += _("CPU:\t %s") % about.getCPUString() + cpuMHz + "\n"
+	openLD = "OpenLD "
+
+	AboutText += _("CPU:\t %s") % str(about.getCPUString()) + cpuMHz + "\n"
+	AboutText += _("Cores:\t %s") % str(about.getCpuCoresString()) + "\n"
 	AboutText += _("BogoMIPS:\t %s") % bogoMIPS + "\n"
-	AboutText += _("Cores:\t %s") % about.getCpuCoresString() + "\n"
 	AboutText += _("GPU:\t %s") % gpuMHZ + "\n"
-
-	AboutText += _("Version:\t %s") % getImageVersion() + "\n"
-	AboutText += _("Build:\t %s") % getImageBuild() + "\n"
-	AboutText += _("Kernel:\t %s") % about.getKernelVersionString() + "\n"
-
-	AboutText += _("DVB drivers:\t %s") % about.getDriverInstalledDate() + "\n"
-	AboutText += _("Last update:\t %s") % getEnigmaVersionString() + "\n"
-	AboutText += _("GStreamer:\t%s") % about.getGStreamerVersionString().replace('GStreamer','') + "\n"
-	AboutText += _("Python:\t %s") % about.getPythonVersionString() + "\n"
+	AboutText += _("Firmware:\t %s") % openLD + str(about.getImageVersion()) + "\n"
+	#AboutText += _("Build:\t %s") % getImageBuild() + "\n"
+	AboutText += _("Kernel:\t %s") % str(about.getKernelVersionString()) + "\n"
+	AboutText += _("DVB drivers:\t %s") % str(about.getDriverInstalledDate()) + "\n"
+	AboutText += _("Last update:\t %s") % str(getEnigmaVersionString()) + "\n"
+	AboutText += _("GStreamer:\t%s") % str(about.getGStreamerVersionString().replace('GStreamer','')) + "\n"
+	AboutText += _("Python:\t %s") % about.getPythonVersionString() + "\n\n"
+	#AboutText += _("CPU Load:\t %s") % str(about.getLoadCPUString()) + "\n"
+	
     #AboutText += _("Installed:\t ") + about.getFlashDateString() + "\n"
 	#AboutText += _("Restarts:\t %d ") % config.misc.startCounter.value + "\n\n"
 
@@ -119,10 +129,9 @@ class About(Screen):
 			})
 
 	def populate(self):
-		self["lab1"] = StaticText(_("Firmware:\t OpenLD"))
-		self["lab2"] = StaticText(_("Developer:\t Javilonas (Javier Sayago)"))
+		self["lab1"] = StaticText(_("Developer:\t Javilonas (Javier Sayago)"))
+		self["lab2"] = StaticText(_("Support:\t www.lonasdigital.com"))
 		model = None
-		self["lab3"] = StaticText(_("Support:\t www.lonasdigital.com"))
 
 		AboutText = getAboutText()[0]
 
@@ -267,8 +276,8 @@ class SystemMemoryInfo(Screen):
 		Screen.__init__(self, session)
 		Screen.setTitle(self, _("Memory Information"))
 		self.skinName = ["SystemMemoryInfo", "About"]
-		self["lab1"] = StaticText(_("Firmware:\t OpenLD"))
-		self["lab2"] = StaticText(_("Developer:\t Javilonas (Javier Sayago)"))
+		self["lab1"] = StaticText(_("INFO RAM / FLASH"))
+		#self["lab2"] = StaticText(_("Developer:\t Javilonas (Javier Sayago)"))
 		self["AboutScrollLabel"] = ScrollLabel()
 
 		self["actions"] = ActionMap(["SetupActions", "ColorActions"],
@@ -289,6 +298,7 @@ class SystemMemoryInfo(Screen):
 			if "MemFree:" in tstLine:
 				MemFree = out_lines[lidx].split()
 				self.AboutText += _("Free Memory:") + "\t" + MemFree[1] + "\n"
+				self.AboutText += _("Memory Usage:\t%s") % str(about.getRAMusageString()) + "\n"
 			if "Buffers:" in tstLine:
 				Buffers = out_lines[lidx].split()
 				self.AboutText += _("Buffers:") + "\t" + Buffers[1] + "\n"

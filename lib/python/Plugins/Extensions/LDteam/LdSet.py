@@ -1,37 +1,62 @@
-# -*- coding: ISO-8859-1 -*-
-
-from enigma import eTimer, eListboxPythonMultiContent, gFont, eEnv, getDesktop, pNavigation
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+##
+##
+## Copyright (c) 2012-2015 OpenLD
+##          Javier Sayago <admin@lonasdigital.com>
+## Contact: javilonas@esp-desarrolladores.com
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##    http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+##########################################################################
+from enigma import iServiceInformation, eTimer, eEPGCache, eDVBDB, eDVBCI_UI, eListboxPythonMultiContent, eListboxPythonConfigContent, gFont, loadPNG, eListboxPythonMultiContent, iServiceInformation, eEnv, getDesktop, pNavigation
 from Screens.Screen import Screen
+from Screens.Standby import TryQuitMainloop
 from Screens.MessageBox import MessageBox
+from Screens.ChoiceBox import ChoiceBox
 from Screens.InputBox import InputBox
+from Components.FileList import FileEntryComponent, FileList
+from Components.ActionMap import ActionMap, NumberActionMap, HelpableActionMap
+from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaTest
 from Components.Sources.StaticText import StaticText
-from Components.ActionMap import ActionMap
+from Components.Sources.List import List
 from Components.Label import Label
-from Components.Pixmap import Pixmap
+from Tools.BoundFunction import boundFunction
+from Components.Pixmap import Pixmap, MultiPixmap
 from Components.ConfigList import ConfigListScreen
 from Components.Harddisk import harddiskmanager
-from Components.config import getConfigListEntry, config, ConfigYesNo, ConfigText, ConfigSelection, ConfigNumber, ConfigSubsection, ConfigPassword, ConfigSubsection, ConfigClock, ConfigDateTime, ConfigInteger, configfile, NoSave
-from Components.Sources.List import List
+from Components.config import getConfigListEntry, config, ConfigElement, ConfigYesNo, ConfigText, ConfigSelection, ConfigSubList, ConfigNumber, ConfigSubsection, ConfigPassword, ConfigSubsection, ConfigClock, ConfigDateTime, ConfigInteger, configfile, NoSave, KEY_LEFT, KEY_RIGHT, KEY_OK
 from Components.Sources.Progress import Progress
-from Components.Console import Console
+from Components.About import about
 from Components.Network import iNetwork
 from Components.MenuList import MenuList
 from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaBlend
 from Screens.Setup import Setup, getSetupTitle
 from Components.Language import language
 from ServiceReference import ServiceReference
-from enigma import eEPGCache
-from enigma import eDVBDB
 from Components.ScrollLabel import ScrollLabel
+from Components.PluginList import * 
+from Plugins.Plugin import PluginDescriptor
+from Components.PluginComponent import plugins
 from Components.Console import Console as iConsole
 from time import sleep
 from re import search
 from time import *
 from types import *
 from enigma import *
-import sys, traceback, re, new, os, gettext, commands, time, datetime, _enigma, enigma, Screens.Standby, subprocess, threading
+import sys, socket, traceback, re, new, os, gettext, commands, time, datetime, _enigma, enigma, Screens.Standby, subprocess, threading
 from Tools.LoadPixmap import LoadPixmap
-from Tools.Directories import fileExists, pathExists, resolveFilename, SCOPE_PLUGINS, SCOPE_SKIN_IMAGE, SCOPE_SKIN
+from Tools.Directories import fileExists, pathExists, resolveFilename, SCOPE_CURRENT_SKIN, SCOPE_PLUGINS, SCOPE_SKIN_IMAGE, SCOPE_SKIN
 from os import system, listdir, path, remove as os_remove, rename as os_rename, popen, getcwd, chdir
 from Plugins.SystemPlugins.NetworkBrowser.NetworkBrowser import NetworkBrowser
 import NavigationInstance
@@ -77,8 +102,10 @@ class LDSettings(Screen):
 <convert type="TemplatedMultiContent">
 {"template": [
 MultiContentEntryText(pos = (60, 1), size = (300, 40), flags = RT_HALIGN_LEFT|RT_VALIGN_CENTER, text = 0),
+
 MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 ],
+
 "fonts": [gFont("Regular", 24)],
 "itemHeight": 40
 }
@@ -103,6 +130,7 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 
 	def openSetup(self, dialog):
 		self.session.openWithCallback(self.menuClosed, Setup, dialog)
+
 
 	def menuClosed(self, *res):
 		pass
@@ -193,7 +221,7 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 
 		mypixmap = mypath + "SundtekControlCenter.png"
 		png = LoadPixmap(mypixmap)
-		name = "Soundtek Center"
+		name = _("Soundtek Center")
 		idx = 1
 		res = (name, png, idx)
 		self.list.append(res)
@@ -273,6 +301,7 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 class Ttimer(Screen):
 
         skin = """<screen name="Ttimer" position="center,center" zPosition="10" size="1280,720" title="Actualizacion EPG" backgroundColor="black" flags="wfNoBorder">
+
                         <widget name="srclabel" font="Regular; 15" position="424,614" zPosition="2" valign="center" halign="center" size="500,30" foregroundColor="white" backgroundColor="black" transparent="0" />
                         <widget source="progress" render="Progress" position="322,677" foregroundColor="white" size="700,20" borderWidth="1" borderColor="grey" backgroundColor="black" />
 			 
@@ -303,7 +332,12 @@ class Ttimer(Screen):
                         self.ctimer.stop()
                         self.session.nav.playService(eServiceReference(config.tv.lastservice.value))
                         rDialog.stopDialog(self.session)
+                        epgcache = new.instancemethod(_enigma.eEPGCache_load,None,eEPGCache)
+                        epgcache = eEPGCache.getInstance().save()
                         self.mbox = self.session.open(MessageBox,(_("Updated Epg")), MessageBox.TYPE_INFO, timeout = 5 )
+                        from Screens.Standby import inStandby
+                        if inStandby: 
+				               self.session.nav.stopService()
                         self.close()
 pdialog = ""
 
@@ -332,6 +366,7 @@ class LDepg(Screen, ConfigListScreen):
 	</widget>
   <widget position="15,50" size="680,420" name="config" scrollbarMode="showOnDemand" />
   <ePixmap position="30,590" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/red150x30.png" alphatest="blend" />
+
   <widget source="key_red" render="Label" position="30,590" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" backgroundColor="background" foregroundColor="foreground" transparent="1" />
   <ePixmap position="200,590" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/green150x30.png" alphatest="blend" />
 <ePixmap position="370,590" zPosition="1" size="165,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/yellow150x30.png" alphatest="blend" />
@@ -339,6 +374,7 @@ class LDepg(Screen, ConfigListScreen):
 <widget source="key_blue" render="Label" position="540,590" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" backgroundColor="background" foregroundColor="foreground" transparent="1" />
   <widget source="key_green" render="Label" position="200,590" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" backgroundColor="background" foregroundColor="foreground" transparent="1" />
 <widget source="key_yellow" render="Label" position="370,590" zPosition="2" size="165,30" font="Regular;20" halign="center" valign="center" backgroundColor="background" foregroundColor="foreground" transparent="1" />
+
   </screen>"""
  
 	def __init__(self, session):
@@ -362,13 +398,13 @@ class LDepg(Screen, ConfigListScreen):
 			"ok": self.save
 		}, -2)
 
+		self.list.append(getConfigListEntry(_("The path where stored epg.dat"), config.misc.epgcachepath))
 		self.list.append(getConfigListEntry(_("Enable EIT EPG"), config.epg.eit))
 		self.list.append(getConfigListEntry(_("Enable MHW EPG"), config.epg.mhw))
-		self.list.append(getConfigListEntry(_("Enable FreeSat EPG"), config.epg.freesat))
+		self.list.append(getConfigListEntry(_("Enable freesat EPG"), config.epg.freesat))
 		self.list.append(getConfigListEntry(_("Enable ViaSat EPG"), config.epg.viasat))
 		self.list.append(getConfigListEntry(_("Enable Netmed EPG"), config.epg.netmed))
 		self.list.append(getConfigListEntry(_("Enable Virgin EPG"), config.epg.virgin))
-		self.list.append(getConfigListEntry(_("The path where stored epg.dat"), config.misc.epgcachepath))
 		self.list.append(getConfigListEntry(_("Maximum number of days in EPG"), config.epg.maxdays))
 		self.list.append(getConfigListEntry(_("Maintain old EPG data for"), config.epg.histminutes))
 		self.list.append(getConfigListEntry(_("Time at title page"), config.plugins.LDteam.epgmhw2wait))
@@ -409,6 +445,8 @@ class LDepg(Screen, ConfigListScreen):
 		config.misc.epgcache_filename.value = ("%sepg.dat" % config.misc.epgcachepath.value)
 		config.misc.epgcache_filename.save()
 		config.misc.epgcachepath.save()
+		epgcache = new.instancemethod(_enigma.eEPGCache_save,None,eEPGCache)
+		epgcache = eEPGCache.getInstance().save()
 		config.plugins.LDteam.epgmhw2wait.save()
 		configfile.save()
 		self.mbox = self.session.open(MessageBox,(_("configuration is saved")), MessageBox.TYPE_INFO, timeout = 4 )
@@ -470,6 +508,7 @@ class LDmemoria(ConfigListScreen, Screen):
 	<widget source="key_yellow" render="Label" position="340,328" zPosition="2" size="195,30" font="Regular;20" halign="center" valign="center" backgroundColor="background" foregroundColor="foreground" transparent="1" />
 	<widget source="MemoryLabel" render="Label" position="55,235" size="150,22" font="Regular; 20" halign="right" foregroundColor="#aaaaaa" />
 	<widget source="memTotal" render="Label" position="220,235" zPosition="2" size="450,22" font="Regular;20" halign="left" valign="center" backgroundColor="background" foregroundColor="foreground" transparent="1" />
+
 	<widget source="bufCache" render="Label" position="220,260" zPosition="2" size="450,22" font="Regular;20" halign="left" valign="center" backgroundColor="background" foregroundColor="foreground" transparent="1" />
 </screen>"""
 
@@ -547,9 +586,13 @@ class LdNetBrowser(Screen):
 			<convert type="StringList" />
 		</widget>
     		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/red150x30.png" position="200,480" size="150,30" alphatest="on" />
+
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/yellow150x30.png" position="440,480" size="150,30" alphatest="on" />
+
 		<widget name="key_red" position="200,482" zPosition="1" size="150,25" font="Regular;20" halign="center" valign="center" backgroundColor="#9f1313" transparent="1" />
+
 		<widget name="key_yellow" position="440,482" zPosition="1" size="150,25" font="Regular;20" halign="center" valign="center" backgroundColor="#a08500" transparent="1" />
+
     	</screen>"""
 	
 	def __init__(self, session):
