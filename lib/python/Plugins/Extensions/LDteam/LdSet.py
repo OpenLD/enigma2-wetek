@@ -19,8 +19,9 @@
 ## limitations under the License.
 ##
 ##########################################################################
-from enigma import iServiceInformation, eTimer, eDVBDB, eDVBCI_UI, eListboxPythonMultiContent, eListboxPythonConfigContent, gFont, loadPNG, eListboxPythonMultiContent, iServiceInformation, eEnv, getDesktop, pNavigation
+from enigma import iServiceInformation, eTimer, eEPGCache, eDVBDB, eDVBCI_UI, eListboxPythonMultiContent, eListboxPythonConfigContent, gFont, loadPNG, eListboxPythonMultiContent, iServiceInformation, eEnv, getDesktop, pNavigation
 from Screens.Screen import Screen
+from Screens.Standby import TryQuitMainloop
 from Screens.MessageBox import MessageBox
 from Screens.ChoiceBox import ChoiceBox
 from Screens.InputBox import InputBox
@@ -29,7 +30,6 @@ from Components.ActionMap import ActionMap, NumberActionMap, HelpableActionMap
 from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixmapAlphaTest
 from Components.Sources.StaticText import StaticText
 from Components.Sources.List import List
-from Components.ActionMap import ActionMap
 from Components.Label import Label
 from Tools.BoundFunction import boundFunction
 from Components.Pixmap import Pixmap, MultiPixmap
@@ -44,8 +44,6 @@ from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixm
 from Screens.Setup import Setup, getSetupTitle
 from Components.Language import language
 from ServiceReference import ServiceReference
-from enigma import eEPGCache
-from enigma import eDVBDB
 from Components.ScrollLabel import ScrollLabel
 from Components.PluginList import * 
 from Plugins.Plugin import PluginDescriptor
@@ -56,19 +54,12 @@ from re import search
 from time import *
 from types import *
 from enigma import *
-import sys, traceback, re, new, os, gettext, commands, time, datetime, _enigma, enigma, Screens.Standby, subprocess, threading
+import sys, socket, traceback, re, new, os, gettext, commands, time, datetime, _enigma, enigma, Screens.Standby, subprocess, threading
 from Tools.LoadPixmap import LoadPixmap
-from Tools.Directories import fileExists, pathExists, resolveFilename, SCOPE_PLUGINS, SCOPE_SKIN_IMAGE, SCOPE_SKIN
+from Tools.Directories import fileExists, pathExists, resolveFilename, SCOPE_CURRENT_SKIN, SCOPE_PLUGINS, SCOPE_SKIN_IMAGE, SCOPE_SKIN
 from os import system, listdir, path, remove as os_remove, rename as os_rename, popen, getcwd, chdir
 from Plugins.SystemPlugins.NetworkBrowser.NetworkBrowser import NetworkBrowser
 import NavigationInstance
-
-import os
-import sys
-import re
-import socket
-import time
-import datetime
 
 count = 0
 
@@ -230,7 +221,7 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 
 		mypixmap = mypath + "SundtekControlCenter.png"
 		png = LoadPixmap(mypixmap)
-		name = "Soundtek Center"
+		name = _("Soundtek Center")
 		idx = 1
 		res = (name, png, idx)
 		self.list.append(res)
@@ -341,7 +332,12 @@ class Ttimer(Screen):
                         self.ctimer.stop()
                         self.session.nav.playService(eServiceReference(config.tv.lastservice.value))
                         rDialog.stopDialog(self.session)
+                        epgcache = new.instancemethod(_enigma.eEPGCache_load,None,eEPGCache)
+                        epgcache = eEPGCache.getInstance().save()
                         self.mbox = self.session.open(MessageBox,(_("Updated Epg")), MessageBox.TYPE_INFO, timeout = 5 )
+                        from Screens.Standby import inStandby
+                        if inStandby: 
+				               self.session.nav.stopService()
                         self.close()
 pdialog = ""
 
@@ -402,13 +398,13 @@ class LDepg(Screen, ConfigListScreen):
 			"ok": self.save
 		}, -2)
 
+		self.list.append(getConfigListEntry(_("The path where stored epg.dat"), config.misc.epgcachepath))
 		self.list.append(getConfigListEntry(_("Enable EIT EPG"), config.epg.eit))
 		self.list.append(getConfigListEntry(_("Enable MHW EPG"), config.epg.mhw))
-		self.list.append(getConfigListEntry(_("Enable FreeSat EPG"), config.epg.freesat))
+		self.list.append(getConfigListEntry(_("Enable freesat EPG"), config.epg.freesat))
 		self.list.append(getConfigListEntry(_("Enable ViaSat EPG"), config.epg.viasat))
 		self.list.append(getConfigListEntry(_("Enable Netmed EPG"), config.epg.netmed))
 		self.list.append(getConfigListEntry(_("Enable Virgin EPG"), config.epg.virgin))
-		self.list.append(getConfigListEntry(_("The path where stored epg.dat"), config.misc.epgcachepath))
 		self.list.append(getConfigListEntry(_("Maximum number of days in EPG"), config.epg.maxdays))
 		self.list.append(getConfigListEntry(_("Maintain old EPG data for"), config.epg.histminutes))
 		self.list.append(getConfigListEntry(_("Time at title page"), config.plugins.LDteam.epgmhw2wait))
@@ -449,6 +445,8 @@ class LDepg(Screen, ConfigListScreen):
 		config.misc.epgcache_filename.value = ("%sepg.dat" % config.misc.epgcachepath.value)
 		config.misc.epgcache_filename.save()
 		config.misc.epgcachepath.save()
+		epgcache = new.instancemethod(_enigma.eEPGCache_save,None,eEPGCache)
+		epgcache = eEPGCache.getInstance().save()
 		config.plugins.LDteam.epgmhw2wait.save()
 		configfile.save()
 		self.mbox = self.session.open(MessageBox,(_("configuration is saved")), MessageBox.TYPE_INFO, timeout = 4 )
@@ -460,7 +458,6 @@ class Viewmhw(Screen):
 	skin = """
 <screen name="Viewmhw" position="center,80" size="1170,600" title="View mhw2equiv.conf (/etc/mhw2equiv.conf">
 	<ePixmap position="20,590" zPosition="1" size="170,2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/buttons/red150x30.png" alphatest="blend" />
-
 	<widget source="key_red" render="Label" position="20,560" zPosition="2" size="170,30" font="Regular;20" halign="center" valign="center" backgroundColor="background" foregroundColor="foreground" transparent="1" />
 	<widget name="text" position="20,10" size="1130,542" font="Console;22" />
 </screen>"""

@@ -47,14 +47,10 @@ from Plugins.Plugin import PluginDescriptor
 from Components.PluginComponent import plugins
 from Components.Console import Console as iConsole
 from os import popen, system, listdir, remove as os_remove
+from time import *
+from types import *
+import sys, socket, commands, re, new, os, gettext, _enigma, enigma, subprocess, threading, sys, traceback, time, datetime
 from enigma import iServiceInformation, eTimer, eDVBDB, eDVBCI_UI, eListboxPythonStringContent, eListboxPythonConfigContent, gFont, loadPNG, eListboxPythonMultiContent, iServiceInformation
-
-import os
-import sys
-import re
-import socket
-import time
-import datetime
 
 
 class LDBluePanel(Screen):
