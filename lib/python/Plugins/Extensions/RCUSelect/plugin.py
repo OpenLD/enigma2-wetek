@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-# for localized messages
-from . import _
-
 from Screens.Screen import Screen
 from Screens.MessageBox import MessageBox
 from Plugins.Plugin import PluginDescriptor
