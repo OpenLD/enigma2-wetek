@@ -99,7 +99,7 @@ def initBooster():
 def initStandbyBooster():
     print '[WetekFRQ] initStandbyBooster'
     try:
-        f = open('/sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq', 'w')
+        f = open('/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq', 'w')
         f.write(config.plugins.wetek.stdbyfrq.getValue())
         f.close()
     except:
