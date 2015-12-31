@@ -1,3 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+##
+## Mod WetekFRQ by Javilonas: 
+## 31.12.2015 
+##   - Add Control Scheduler (CFQ for default).
+##   - Add Control read ahead (2048 for default).
+##   - Correct Freq table for CPU meson6 (Stable).
+##   - Interactive Governor for default (in future add barry_allen governor).
+##
+##          Javier Sayago <admin@lonasdigital.com>
+## Contact: javilonas@esp-desarrolladores.com
+##
+######################################################
 from Screens.Screen import Screen
 from Plugins.Plugin import PluginDescriptor
 from Components.Console import Console
@@ -10,31 +24,45 @@ import Screens.Standby
 
 config.plugins.wetek = ConfigSubsection()
 
-config.plugins.wetek.governor = ConfigSelection(default='ondemand', choices=[('hotplug', _('hotplug')),
-('interactive', _('interactive')),
-('conservative', _('conservative')),
-('ondemand', _('ondemand (default)')),
-('performance', _('performance'))])
-config.plugins.wetek.workfrq = ConfigSelection(default='1200000', choices=[('200000', _('200MHz')),
+config.plugins.wetek.governor = ConfigSelection(default='interactive', choices=[('hotplug', _('Hotplug')),
+('interactive', _('Interactive (default)')),
+('conservative', _('Conservative')),
+('ondemand', _('Ondemand')),
+('performance', _('Performance'))])
+config.plugins.wetek.iosd = ConfigSelection(default='2048', choices=[('128', _('128')),
+('256', _('256')),
+('512', _('512')),
+('1024', _('1024')),
+('2048', _('2048 (default)'))])
+config.plugins.wetek.scheduler = ConfigSelection(default='cfq', choices=[('nop', _('NOP')),
+('deadline', _('Deadline')),
+('cfq', _('CFQ (default)'))])
+config.plugins.wetek.workfrq = ConfigSelection(default='1200000', choices=[('96000', _('96MHz')),
+('192000', _('192MHz')),
+('312000', _('312MHz')),
+('408000', _('408MHz')),
+('504000', _('504MHz')),
 ('600000', _('600MHz')),
-('792000', _('792MHz')),
+('696000', _('696MHz')),
 ('816000', _('816MHz')),
-('840000', _('840MHz')),
-('984000', _('984MHz')),
-('1000000', _('1GHz')),
-('1080000', _('1.08GHz')),
+('912000', _('912MHz')),
+('1008000', _('1.08GHz')),
+('1104000', _('1.104GHz')),
 ('1200000', _('1.2GHz (default)')),
-('1320000', _('1.32GHz')),
+('1296000', _('1.296GHz')),
+('1416000', _('1.416GHz')),
 ('1512000', _('1.512GHz'))])
-config.plugins.wetek.stdbyfrq = ConfigSelection(default='792000', choices=[('96000', _('96MHz')),
-('200000', _('200MHz')),
-('600000', _('600MHz')),
-('792000', _('792MHz (default)')),
+config.plugins.wetek.stdbyfrq = ConfigSelection(default='600000', choices=[('96000', _('96MHz')),
+('192000', _('192MHz')),
+('312000', _('312MHz')),
+('408000', _('408MHz')),
+('504000', _('504MHz')),
+('600000', _('600MHz (default)')),
+('696000', _('696MHz')),
 ('816000', _('816MHz')),
-('840000', _('840MHz')),
-('984000', _('984MHz')),
-('1000000', _('1GHz')),
-('1080000', _('1.08GHz')),
+('912000', _('912MHz')),
+('1008000', _('1.08GHz')),
+('1104000', _('1.104GHz')),
 ('1200000', _('1.2GHz'))])
 
 def leaveStandby():
@@ -58,6 +86,12 @@ def initBooster():
         f = open('/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor', 'w')
         f.write(config.plugins.wetek.governor.getValue())
         f.close()
+        f = open('/sys/block/mmcblk0/queue/scheduler', 'w')
+        f.write(config.plugins.wetek.scheduler.getValue())
+        f.close()
+        f = open('/sys/block/mmcblk0/queue/read_ahead_kb', 'w')
+        f.write(config.plugins.wetek.iosd.getValue())
+        f.close()
     except:
         pass
 
@@ -65,7 +99,7 @@ def initBooster():
 def initStandbyBooster():
     print '[WetekFRQ] initStandbyBooster'
     try:
-        f = open('/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq', 'w')
+        f = open('/sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq', 'w')
         f.write(config.plugins.wetek.stdbyfrq.getValue())
         f.close()
     except:
@@ -94,9 +128,11 @@ class WetekFRQ(ConfigListScreen, Screen):
     def createSetup(self):
         self.editListEntry = None
         self.list = []
-        self.list.append(getConfigListEntry(_('OpenLD max CPU frequency'), config.plugins.wetek.workfrq))
-        self.list.append(getConfigListEntry(_('Standby max CPU frequency'), config.plugins.wetek.stdbyfrq))
-        self.list.append(getConfigListEntry(_('Scaling governor'), config.plugins.wetek.governor))
+        self.list.append(getConfigListEntry(_('OpenLD Max CPU frequency'), config.plugins.wetek.workfrq))
+        self.list.append(getConfigListEntry(_('Standby Max CPU frequency'), config.plugins.wetek.stdbyfrq))
+        self.list.append(getConfigListEntry(_('Scaling Governor'), config.plugins.wetek.governor))
+        self.list.append(getConfigListEntry(_('I/O Scheduler'), config.plugins.wetek.scheduler))
+        self.list.append(getConfigListEntry(_('I/O Read ahead'), config.plugins.wetek.iosd))
         self['config'].list = self.list
         self['config'].l.setList(self.list)
 
@@ -194,4 +230,4 @@ def sessionstart(reason, **kwargs):
 
 
 def Plugins(**kwargs):
-    return [PluginDescriptor(where=[PluginDescriptor.WHERE_AUTOSTART, PluginDescriptor.WHERE_SESSIONSTART], fnc=sessionstart), PluginDescriptor(name='Wetek FRQ Setup', description='Set CPU speed settings', where=PluginDescriptor.WHERE_MENU, fnc=main)]
+    return [PluginDescriptor(where=[PluginDescriptor.WHERE_AUTOSTART, PluginDescriptor.WHERE_SESSIONSTART], fnc=sessionstart), PluginDescriptor(name='Wetek FRQ Setup', description='Set CPU Speed Settings', where=PluginDescriptor.WHERE_MENU, fnc=main)]
