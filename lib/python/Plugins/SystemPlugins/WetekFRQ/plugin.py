@@ -2,11 +2,16 @@
 # -*- coding: UTF-8 -*-
 ##
 ## Mod WetekFRQ by Javilonas: 
-## 31.12.2015 
-##   - Add Control Scheduler (CFQ for default).
-##   - Add Control read ahead (2048 for default).
-##   - Correct Freq table for CPU meson6 (Stable).
-##   - Interactive Governor for default (in future add barry_allen governor).
+##  31.12.2015:
+##    - Add Control Scheduler (CFQ for default).
+##    - Add Control read ahead (2048 for default).
+##    - Correct Freq table for CPU meson6 (Stable).
+##    - Interactive Governor for default (in future add barry_allen governor).
+##  01.01.2016:
+##    - Add read ahead options 384 and 3072.
+##    - Add Governor Barry Allen.
+##    - Barry_allen for default.
+##    - 1.416GHz for default.
 ##
 ##          Javier Sayago <admin@lonasdigital.com>
 ## Contact: javilonas@esp-desarrolladores.com
@@ -24,20 +29,23 @@ import Screens.Standby
 
 config.plugins.wetek = ConfigSubsection()
 
-config.plugins.wetek.governor = ConfigSelection(default='interactive', choices=[('hotplug', _('Hotplug')),
-('interactive', _('Interactive (default)')),
+config.plugins.wetek.governor = ConfigSelection(default='barry_allen', choices=[('hotplug', _('Hotplug')),
+('barry_allen', _('Barry Allen (default)')),
+('interactive', _('Interactive')),
 ('conservative', _('Conservative')),
 ('ondemand', _('Ondemand')),
 ('performance', _('Performance'))])
 config.plugins.wetek.iosd = ConfigSelection(default='2048', choices=[('128', _('128')),
 ('256', _('256')),
+('384', _('384')),
 ('512', _('512')),
 ('1024', _('1024')),
-('2048', _('2048 (default)'))])
+('2048', _('2048 (default)')),
+('3072', _('3072'))])
 config.plugins.wetek.scheduler = ConfigSelection(default='cfq', choices=[('nop', _('NOP')),
 ('deadline', _('Deadline')),
 ('cfq', _('CFQ (default)'))])
-config.plugins.wetek.workfrq = ConfigSelection(default='1200000', choices=[('96000', _('96MHz')),
+config.plugins.wetek.workfrq = ConfigSelection(default='1416000', choices=[('96000', _('96MHz')),
 ('192000', _('192MHz')),
 ('312000', _('312MHz')),
 ('408000', _('408MHz')),
@@ -48,9 +56,9 @@ config.plugins.wetek.workfrq = ConfigSelection(default='1200000', choices=[('960
 ('912000', _('912MHz')),
 ('1008000', _('1.08GHz')),
 ('1104000', _('1.104GHz')),
-('1200000', _('1.2GHz (default)')),
+('1200000', _('1.2GHz')),
 ('1296000', _('1.296GHz')),
-('1416000', _('1.416GHz')),
+('1416000', _('1.416GHz (default)')),
 ('1512000', _('1.512GHz'))])
 config.plugins.wetek.stdbyfrq = ConfigSelection(default='600000', choices=[('96000', _('96MHz')),
 ('192000', _('192MHz')),
