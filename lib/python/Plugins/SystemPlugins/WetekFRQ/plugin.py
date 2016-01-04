@@ -9,8 +9,6 @@
 ##    - Interactive Governor for default (in future add barry_allen governor).
 ##  01.01.2016:
 ##    - Add read ahead options 384 and 3072.
-##    - Add Governor Barry Allen.
-##    - Barry_allen for default.
 ##    - 1.416GHz for default.
 ##
 ##          Javier Sayago <admin@lonasdigital.com>
@@ -29,8 +27,7 @@ import Screens.Standby
 
 config.plugins.wetek = ConfigSubsection()
 
-config.plugins.wetek.governor = ConfigSelection(default='barry_allen', choices=[('hotplug', _('Hotplug')),
-('barry_allen', _('Barry Allen (default)')),
+config.plugins.wetek.governor = ConfigSelection(default='Interactive', choices=[('hotplug', _('Hotplug')),
 ('interactive', _('Interactive')),
 ('conservative', _('Conservative')),
 ('ondemand', _('Ondemand')),
