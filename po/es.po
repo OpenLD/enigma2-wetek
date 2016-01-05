@@ -15772,7 +15772,7 @@ msgid "Soundtek Center"
 msgstr "Sundtek Control Center"
 
 msgid "Record settings"
-msgstr "Ajustes de grabacion"
+msgstr "Ajustes de grabación"
 
 msgid "Auto language settings"
 msgstr "Auto configuracion idioma"
@@ -15788,6 +15788,9 @@ msgstr "Reiniciar RED"
 
 msgid "Please wait, Updating Epg"
 msgstr "Por favor Espere, Actualizando Epg"
+
+msgid "EPG Options"
+msgstr "Opciones EPG"
 
 msgid "Updated Epg"
 msgstr "Epg Actualizado"
