@@ -25,7 +25,7 @@ class RCUSelect(Screen):
 	def __init__(self, session, args = 0):
 		self.session = session
 		Screen.__init__(self, session)
-		self.skinName = "RCUSelect"                 
+		self.skinName = "RCUSelect"
 		self.index = 0
 		self.rcuval = []
 		self.rcuvalOSD = []
@@ -38,7 +38,7 @@ class RCUSelect(Screen):
 		}, -1)
 		self["key_green"] = Button(_("Apply"))
 		self["key_red"] = Button(_("Cancel"))
-		
+
 		self.testlist = []
 		self["info"] = Label()
 		self["list"] = MenuList(self.rcuvalOSD)
@@ -127,14 +127,14 @@ class RCUSelect(Screen):
 		self.close()
 
 def startConfig(session, **kwargs):
-        session.open(RCUSelect)
+		session.open(RCUSelect)
 
 def system(menuid):
 	if menuid == "system":
 		return [(_("RCU Select"), startConfig, "RCU Select", None)]
 	else:
 		return []
-        
+
 def Plugins(**kwargs):
 	boxime = HardwareInfo().get_device_name()
 	if boxime == 'wetekplay' :

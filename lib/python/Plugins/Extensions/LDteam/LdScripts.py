@@ -62,11 +62,11 @@ class LDScripts(Screen):
 			"red": self.myGo
 		})
 		self.onLayoutFinish.append(self.refr_sel)
-		
+
 	def refr_sel(self):
 		self["list"].index = 1
 		self["list"].index = 0
-		
+
 	def populateSL(self):
 		myscripts = listdir("/usr/lib/enigma2/python/Plugins/Extensions/LDteam/scripts")
 		for fil in myscripts:
@@ -80,7 +80,7 @@ class LDScripts(Screen):
 						desc = line[13:]
 				f.close()
 				res = (fil2, desc)
-				self.mlist.append(res)			
+				self.mlist.append(res)
 
 	def schanged(self):
 		mysel = self["list"].getCurrent()
@@ -88,7 +88,7 @@ class LDScripts(Screen):
 			mytext = " " + mysel[1]
 			self["statuslab"].setText(mytext)
 
-			
+
 	def myGo(self):
 		mysel = self["list"].getCurrent()
 		if mysel:

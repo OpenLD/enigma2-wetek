@@ -260,7 +260,7 @@ class AudioSetup(Screen, ConfigListScreen):
 		level = config.usage.setup_level.index
 
 		self.list = [ ]
-		
+
 		if level >= 1:
 			if SystemInfo["CanPcmMultichannel"]:
 				self.list.append(getConfigListEntry(_("PCM Multichannel"), config.av.pcm_multichannel, _("Choose whether multi channel sound tracks should be output as PCM.")))
@@ -577,7 +577,7 @@ class AutoVideoMode(Screen):
 				else:
 					print "DEBUG VIDEOMODE/ no path or no service reference, presumably live TV"
 					new_rate = '50' # for TV / or no service reference, then stay at 1080p50
-				
+
 				new_rate = new_rate.replace('25', '50')
 				new_rate = new_rate.replace('30', '60')
 				

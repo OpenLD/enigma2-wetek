@@ -91,7 +91,7 @@ class HddMount(Screen):
 			self["key_red"].setText(_("Use as HDD"))
 		else:
 			self["key_red"].setText(" ")
-			
+
 		if self.sel:
 			try:
 				name = str(self.sel[0])

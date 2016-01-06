@@ -55,26 +55,26 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 	</convert>
 	</widget>
 </screen>"""
-	
+
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		
+
 		self.list = []
 		self["list"] = List(self.list)
 		self.updateList()
-		
-		
+
+
 		self["actions"] = ActionMap(["WizardActions", "ColorActions"],
 		{
 			"ok": self.KeyOk,
 			"back": self.close
 
 		})
-		
+
 	def KeyOk(self):
 		self.sel = self["list"].getCurrent()
 		self.sel = self.sel[2]
-		
+
 		if self.sel == 0:
 			from Plugins.Extensions.LDteam.LdNetworkSetup import NetworkSamba
 			self.session.open(NetworkSamba)
@@ -107,12 +107,12 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 			#self.session.open(RemoteTunerServer)
 		else:
 			self.noYet()
-			
+
 	def noYet(self):
 		nobox = self.session.open(MessageBox, "Funcion Todavia no disponible", MessageBox.TYPE_INFO)
 		nobox.setTitle(_("Info"))
-	
-		
+
+
 	def updateList(self):
 		self.list = [ ]
 		mypath = "/usr/lib/enigma2/python/Plugins/Extensions/LDteam/images/icons/"
@@ -158,21 +158,21 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 		idx = 5
 		res = (name, png, idx)
 		self.list.append(res)
-		
+
 		mypixmap = mypath + "Afp.png"
 		png = LoadPixmap(mypixmap)
 		name = "AFP"
 		idx = 6
 		res = (name, png, idx)
 		self.list.append(res)
-		
+
 		mypixmap = mypath + "Ushare.png"
 		png = LoadPixmap(mypixmap)
 		name = "uShare"
 		idx = 7
 		res = (name, png, idx)
 		self.list.append(res)	
-		
+
 		mypixmap = mypath + "Telnet.png"
 		png = LoadPixmap(mypixmap)
 		name = "Telnet"
@@ -186,8 +186,8 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 		#idx = 9
 		#res = (name, png, idx)
 		#self.list.append(res)
-				
+
 		self["list"].list = self.list
-		
-		
+
+
 

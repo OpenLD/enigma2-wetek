@@ -2331,7 +2331,7 @@ class InfoBarSeek:
 			if os.path.exists("/proc/stb/lcd/symbol_hdd"):
 				f = open("/proc/stb/lcd/symbol_hdd", "w")
 				f.write("0")
-				f.close()        
+				f.close()
 			if os.path.exists("/proc/stb/lcd/symbol_hddprogress"):  
 				f = open("/proc/stb/lcd/symbol_hddprogress", "w")
 				f.write("0")
@@ -2928,71 +2928,71 @@ class InfoBarShowMovies:
 
 from Screens.PiPSetup import PiPSetup
 class InfoBarExtensions:
-        EXTENSION_SINGLE = 0
-        EXTENSION_LIST = 1
+		EXTENSION_SINGLE = 0
+		EXTENSION_LIST = 1
 
-        def __init__(self):
-                self.list = []
+		def __init__(self):
+				self.list = []
 
-                self["InstantExtensionsActions"] = HelpableActionMap(self, "InfobarExtensions",
-                        {
-                                "extensions": (self.showExtensionSelection, _("Show extensions...")),
-                        }, 1) # lower priority
+				self["InstantExtensionsActions"] = HelpableActionMap(self, "InfobarExtensions",
+						{
+								"extensions": (self.showExtensionSelection, _("Show extensions...")),
+						}, 1) # lower priority
 
-        def addExtension(self, extension, key = None, type = EXTENSION_SINGLE):
-                self.list.append((type, extension, key))
+		def addExtension(self, extension, key = None, type = EXTENSION_SINGLE):
+				self.list.append((type, extension, key))
 
-        def updateExtension(self, extension, key = None):
-                self.extensionsList.append(extension)
-                if key is not None:
-                        if self.extensionKeys.has_key(key):
-                                key = None
+		def updateExtension(self, extension, key = None):
+				self.extensionsList.append(extension)
+				if key is not None:
+						if self.extensionKeys.has_key(key):
+								key = None
 
-                if key is None:
-                        for x in self.availableKeys:
-                                if not self.extensionKeys.has_key(x):
-                                        key = x
-                                        break
+				if key is None:
+						for x in self.availableKeys:
+								if not self.extensionKeys.has_key(x):
+										key = x
+										break
 
-                if key is not None:
-                        self.extensionKeys[key] = len(self.extensionsList) - 1
+				if key is not None:
+						self.extensionKeys[key] = len(self.extensionsList) - 1
 
-        def updateExtensions(self):
-                self.extensionsList = []
-                self.availableKeys = [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "red", "green", "yellow", "blue" ]
-                self.extensionKeys = {}
-                for x in self.list:
-                        if x[0] == self.EXTENSION_SINGLE:
-                                self.updateExtension(x[1], x[2])
-                        else:
-                                for y in x[1]():
-                                        self.updateExtension(y[0], y[1])
+		def updateExtensions(self):
+				self.extensionsList = []
+				self.availableKeys = [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "red", "green", "yellow", "blue" ]
+				self.extensionKeys = {}
+				for x in self.list:
+						if x[0] == self.EXTENSION_SINGLE:
+								self.updateExtension(x[1], x[2])
+						else:
+								for y in x[1]():
+										self.updateExtension(y[0], y[1])
 
 
-        def showExtensionSelection(self):
-                self.updateExtensions()
-                extensionsList = self.extensionsList[:]
-                keys = []
-                list = []
-                for x in self.availableKeys:
-                        if self.extensionKeys.has_key(x):
-                                entry = self.extensionKeys[x]
-                                extension = self.extensionsList[entry]
-                                if extension[2]():
-                                        name = str(extension[0]())
-                                        list.append((extension[0](), extension))
-                                        keys.append(x)
-                                        extensionsList.remove(extension)
-                                else:
-                                        extensionsList.remove(extension)
-                list.extend([(x[0](), x) for x in extensionsList])
+	def showExtensionSelection(self):
+				self.updateExtensions()
+				extensionsList = self.extensionsList[:]
+				keys = []
+				list = []
+				for x in self.availableKeys:
+						if self.extensionKeys.has_key(x):
+								entry = self.extensionKeys[x]
+								extension = self.extensionsList[entry]
+								if extension[2]():
+										name = str(extension[0]())
+										list.append((extension[0](), extension))
+										keys.append(x)
+										extensionsList.remove(extension)
+								else:
+										extensionsList.remove(extension)
+				list.extend([(x[0](), x) for x in extensionsList])
 
-                keys += [""] * len(extensionsList)
-                self.session.openWithCallback(self.extensionCallback, ChoiceBox, title=_("Please choose an extension..."), list = list, keys = keys, skin_name = "ExtensionsList")
+				keys += [""] * len(extensionsList)
+				self.session.openWithCallback(self.extensionCallback, ChoiceBox, title=_("Please choose an extension..."), list = list, keys = keys, skin_name = "ExtensionsList")
 
-        def extensionCallback(self, answer):
-                if answer is not None:
-                        answer[1][1]()
+	def extensionCallback(self, answer):
+		if answer is not None:
+			answer[1][1]()
 
 from Tools.BoundFunction import boundFunction
 import inspect
@@ -3224,7 +3224,7 @@ class LDBluePanel:
 		if config.workaround.blueswitch.value == "1":
 			self.showExtensionSelection()
 		else:
-			self.quickmenuStart()			
+			self.quickmenuStart()
 
 	def quickmenuStart(self):
 		try:
@@ -3503,14 +3503,14 @@ class InfoBarInstantRecord:
 
 class InfoBarAudioSelection:
 	def __init__(self):
-                self["AudioSelectionAction"] = HelpableActionMap(self, "InfobarAudioSelectionActions",
-                        {
-                                "audioSelection": (self.audioSelection, _("Audio options...")),
-                        })
+		self["AudioSelectionAction"] = HelpableActionMap(self, "InfobarAudioSelectionActions",
+			{
+			"audioSelection": (self.audioSelection, _("Audio options...")),
+			})
 
-        def audioSelection(self):
-                from Screens.AudioSelection import AudioSelection
-                self.session.openWithCallback(self.audioSelected, AudioSelection, infobar=self)
+	def audioSelection(self):
+		from Screens.AudioSelection import AudioSelection
+		self.session.openWithCallback(self.audioSelected, AudioSelection, infobar=self)
 
 	def audioSelected(self, ret=None):
 		print "[infobar::audioSelected]", ret
@@ -3738,7 +3738,7 @@ class InfoBarAspectSelection:
 		print "do self.STATE_RESOLUTION"
 		self.__ExGreen_state = self.STATE_RESOLUTION
 		self.resolutionSelection()
-		
+
 	def ExGreen_doHide(self):
 		print "do self.STATE_HIDDEN"
 		self.__ExGreen_state = self.STATE_HIDDEN 
@@ -4496,7 +4496,7 @@ class InfoBarHdmi:
 			return _("Turn on HDMI-IN Full screen mode")
 		else:
 			return _("Turn off HDMI-IN Full screen mode")
-	      
+
 	def getHDMIInPiPScreen(self):
 		if not self.hdmi_enabled_pip:
 			return _("Turn on HDMI-IN PiP mode")

@@ -110,7 +110,7 @@ class LDPluginPanel(Screen):
 			res = (plugin.name, plugin.description, png, plugin)
 			self.list.append(res)
 
-		self["list"].list = self.list	
+		self["list"].list = self.list
 
 	def keyYellow(self):
 		from Plugins.Extensions.LDteam.LdScripts import LDScripts

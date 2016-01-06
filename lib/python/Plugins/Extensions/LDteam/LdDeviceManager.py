@@ -675,7 +675,7 @@ class DeviceInit(Screen):
 			self.initInitialize()
 		else:
 			self.exit()
-	
+
 	def initInitialize(self):
 		if not self.unmountAll(self.device):
 			self.session.openWithCallback(self.exit, MessageBox, _("umounting failed!Maybe some files in mount point are open"), MessageBox.TYPE_ERROR, timeout = 10)
@@ -953,7 +953,7 @@ class DeviceCheck(Screen):
 		else:
 			errorMsg = _("Can not umount device /dev/%s.\nMaybe some files of the filesystem are open")%device
 			self.msgWaiting.run_close(False,errorMsg)
-			
+
 	def fsckFinished(self, result, retval, extra_args = None):
 		device = extra_args[0]
 		mountpoint = extra_args[1]
@@ -1118,7 +1118,7 @@ class DeviceFormat(Screen):
 		else:
 			errorMsg = _("Can not format device /dev/%s.\nrefresh partition information failed!")%partition
 			self.msgWaiting.run_close(False,errorMsg)
-			
+
 	def mkfsFinished(self, result, retval, extra_args = None):
 		print "mkfsFinished!"
 		partition = self.partition["partition"]
@@ -1222,7 +1222,7 @@ class DeviceInfo():
 		size_total = self.getPartitionSize(partition)
 		size_free = ""
 		if mountPoint != "":
-			size_free = self.getPartitionFree(mountPoint)	
+			size_free = self.getPartitionFree(mountPoint)
 		partitionInfo = {}
 		partitionInfo["partition"] = partition
 		partitionInfo["mountpoint"] = mountPoint
@@ -1779,7 +1779,7 @@ def checkMounts(session):
 				print "Umountable partitions found."
 				InfoText = _("No mountable devices found.! (%s)\nDo you want to open DeviceManager and do initialize or format this device?\n\n(Open 'Menu->Setup->System -> Harddisk -> DeviceManager'\n and press MENU button to deactivate this check.)")%noMountable_dev
 				AddNotificationWithCallback(
-								boundFunction(callBackforDeviceManager, session), 
+								boundFunction(callBackforDeviceManager, session),
 								MessageBox, InfoText, timeout = 60, default = False
 				)
 	except:
