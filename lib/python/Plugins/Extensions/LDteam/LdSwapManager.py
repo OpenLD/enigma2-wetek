@@ -46,7 +46,7 @@ def SwapAutostart(reason, session = None, **kwargs):
                         print "[SwapManager] autostart"
                         startswap = StartSwap()
                         startswap.start()
-        
+
 class StartSwap:
         def __init__(self):
                 self.Console = Console()
@@ -83,7 +83,7 @@ class StartSwap:
                         system('swapon ' + swap_place)
                 else:
                         print "[SwapManager] Swapfile is already active on ", swap_place
-        
+
 #######################################################################
 class Swap(Screen):
         skin = """
@@ -310,7 +310,7 @@ class Swap(Screen):
                         self.commands.append('dd if=/dev/zero of=' + myfile + ' bs=1024 count=' + swapsize + ' 2>/dev/null')
                         self.commands.append('mkswap ' + myfile)
                         self.Console.eBatch(self.commands, self.updateSwap, debug = True)
-                
+
         def autoSsWap(self):
                 if self.swap_place:
                         if config.plugins.ldteam.swapautostart.value:

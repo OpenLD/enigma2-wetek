@@ -27,8 +27,8 @@
 extern "C" {
 #include <codec.h>
 #include <adec-external-ctrl.h>
-#define AMSTREAM_IOC_MAGIC  'S'
-#define AMSTREAM_IOC_PCRID        _IOW(AMSTREAM_IOC_MAGIC, 0x4f, int)
+#define AMSTREAM_IOC_MAGIC	'S'
+#define AMSTREAM_IOC_PCRID		_IOW(AMSTREAM_IOC_MAGIC, 0x4f, int)
 }
 
 class eSocketNotifier;

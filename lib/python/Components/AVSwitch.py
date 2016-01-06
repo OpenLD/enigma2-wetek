@@ -444,7 +444,7 @@ def InitAVSwitch():
 		if "auto" in f.readline():
 			# TRANSLATORS: (aspect ratio policy: always try to display as fullscreen, when there is no content (black bars) on left/right, even if this breaks the aspect.
 			policy2_choices.update({"auto": _("Auto")})
-		f.close()	
+		f.close()
 	config.av.policy_169 = ConfigSelection(choices=policy2_choices, default = "letterbox")
 	policy_choices = {
 	# TRANSLATORS: (aspect ratio policy: black bars on left/right) in doubt, keep english term.
@@ -498,7 +498,7 @@ def InitAVSwitch():
 		detected = False
 	else:
 		detected = eAVSwitch.getInstance().haveScartSwitch()
-	
+
 	SystemInfo["ScartSwitch"] = detected
 
 	if os.path.exists("/proc/stb/hdmi/bypass_edid_checking"):

@@ -78,7 +78,7 @@ class LdsysInfo(Screen):
 			"ok": self.close,
 			"cancel": self.close,
 		}, -1)
-		
+
 	def updateInfo(self):
 		rc = system("df -h > /tmp/syinfo.tmp")
 		text = "BOX\n"
@@ -94,7 +94,7 @@ class LdsysInfo(Screen):
 		    res = popen(cmd).read()
 		except:
 			res = ""
-		bogoMIPS = ""		
+		bogoMIPS = ""
 		if res:
 			bogoMIPS = "" + res.replace("\n", "")
 		gpuMHZ = "Mali MP400 (Dual Core)"
@@ -103,7 +103,7 @@ class LdsysInfo(Screen):
 		#text += "CPU Load:\t%s" % str(about.getLoadCPUString()) + "\n"
 		text += "BogoMIPS: \t" + bogoMIPS + "\n"
 		text += "GPU: \t" + gpuMHZ + "\n"
- 		f.close()
+		f.close()
 		text += "\nMEMORY\n"
 		memTotal = memFree = swapTotal = swapFree = 0
 		for line in open("/proc/meminfo",'r'):
@@ -130,7 +130,7 @@ class LdsysInfo(Screen):
 		line = f.readline()
 		parts = line.split()
 		text += "Flash" + "\t" + parts[1].strip() + "  " + parts[2].strip()  + "  " +  parts[3].strip()  + "  " +  parts[4] + "\n"
- 		for line in f.readlines():
+		for line in f.readlines():
 			if line.find('/media/') != -1:
 				line = line.replace('/media/', '   ')
 				parts = line.split()
@@ -138,7 +138,7 @@ class LdsysInfo(Screen):
 					text += parts[5] + "\t" + parts[1].strip() + "  " + parts[2].strip() + "  " + parts[3].strip() + "  " + parts[4] + "\n"
 		f.close()
 		os_remove("/tmp/syinfo.tmp")
-		
+
 		text += "\nSOFTWARE\n"
 		f = open("/etc/ldversion",'r')
 		text += "Firmware: \t" + f.readline() + "\n"
@@ -147,4 +147,4 @@ class LdsysInfo(Screen):
 		text += "Kernel: \t" + about.getKernelVersionString() + "\n"
 
 		self["lab1"].setText(text)
-		
+

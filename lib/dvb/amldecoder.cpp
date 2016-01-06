@@ -67,11 +67,11 @@ DEFINE_REF(eAMLTSMPEGDecoder);
 
 
 eAMLTSMPEGDecoder::eAMLTSMPEGDecoder(eDVBDemux *demux, int decoder)
-: m_demux(demux),
-m_vpid(-1), m_vtype(-1), m_apid(-1), m_atype(-1), m_pcrpid(-1), m_textpid(-1),
-m_width(-1), m_height(-1), m_framerate(-1), m_aspect(-1), m_progressive(-1),		
-m_changed(0), m_decoder(decoder), m_radio_pic_on(0), m_video_clip_fd(-1), 
-aml_fd(-1), m_showSinglePicTimer(eTimer::create(eApp)), m_VideoRead(eTimer::create(eApp))
+	: m_demux(demux),
+		m_vpid(-1), m_vtype(-1), m_apid(-1), m_atype(-1), m_pcrpid(-1), m_textpid(-1),
+		m_width(-1), m_height(-1), m_framerate(-1), m_aspect(-1), m_progressive(-1),
+		m_changed(0), m_decoder(decoder), m_radio_pic_on(0), m_video_clip_fd(-1),
+		aml_fd(-1), m_showSinglePicTimer(eTimer::create(eApp)), m_VideoRead(eTimer::create(eApp))
 {
 	TRACE__
 	if (m_demux)
@@ -91,22 +91,22 @@ aml_fd(-1), m_showSinglePicTimer(eTimer::create(eApp)), m_VideoRead(eTimer::crea
 	adec_handle = NULL;
 	
 	if (m_demux && m_decoder == 0)	// Tuxtxt caching actions only on primary decoder
-	eTuxtxtApp::getInstance()->initCache();
-	
+		eTuxtxtApp::getInstance()->initCache();
+
 }
 
 eAMLTSMPEGDecoder::~eAMLTSMPEGDecoder()
 {
 	TRACE__
 	if (m_radio_pic_on)
-	finishShowSinglePic();
-	
+		finishShowSinglePic();
+
 	m_vpid = m_apid = m_pcrpid = m_textpid = pidNone;
 	m_changed = -1;
 	setState();
 
 	if (m_demux && m_decoder == 0)	// Tuxtxt caching actions only on primary decoder
-	eTuxtxtApp::getInstance()->freeCache();
+		eTuxtxtApp::getInstance()->freeCache();
 
 	if (adec_handle)
 	{
@@ -115,9 +115,9 @@ eAMLTSMPEGDecoder::~eAMLTSMPEGDecoder()
 	}
 	adec_handle = NULL;
 	if (aml_fd >= 0)
-	close(aml_fd);
-	
-	setSyncMode(0);	
+		close(aml_fd);
+
+	setSyncMode(0);
 }
 
 
@@ -130,7 +130,7 @@ int eAMLTSMPEGDecoder::setState()
 }
 
 int eAMLTSMPEGDecoder::m_pcm_delay=-1,
-eAMLTSMPEGDecoder::m_ac3_delay=-1;
+	eAMLTSMPEGDecoder::m_ac3_delay=-1;
 
 RESULT eAMLTSMPEGDecoder::setHwPCMDelay(int delay)
 {
@@ -169,19 +169,19 @@ RESULT eAMLTSMPEGDecoder::setVideoPID(int vpid, int type)
 		m_codec.video_type = VFORMAT_MPEG12;
 		switch (type)
 		{
-		default:
-		case MPEG2:
-		case MPEG1:
-			eDebug("%s() video type: MPEG1/2",__PRETTY_FUNCTION__);
-			break;
-		case MPEG4_H264:
-			m_codec.video_type = VFORMAT_H264;
-			eDebug("%s() video type: MPEG4 H264",__PRETTY_FUNCTION__);
-			break;
-		case MPEG4_Part2:
-			m_codec.video_type = VFORMAT_MPEG4; //maybe?
-			eDebug("%s() video type: MPEG4 Part2",__PRETTY_FUNCTION__);
-			break;
+			default:
+			case MPEG2:
+			case MPEG1:
+				eDebug("%s() video type: MPEG1/2",__PRETTY_FUNCTION__);
+				break;
+			case MPEG4_H264:
+				m_codec.video_type = VFORMAT_H264;
+				eDebug("%s() video type: MPEG4 H264",__PRETTY_FUNCTION__);
+				break;
+			case MPEG4_Part2:
+				m_codec.video_type = VFORMAT_MPEG4; //maybe?
+				eDebug("%s() video type: MPEG4 Part2",__PRETTY_FUNCTION__);
+				break;
 		}
 		eDebug("%s() vpid=%d, type=%d",__PRETTY_FUNCTION__, vpid, type);
 	}
@@ -190,77 +190,79 @@ RESULT eAMLTSMPEGDecoder::setVideoPID(int vpid, int type)
 
 RESULT eAMLTSMPEGDecoder::setAudioPID(int apid, int type)
 {
-	TRACE__			
+	TRACE__
 	/* do not set an audio pid on decoders without audio support */
 	if ((m_apid != apid) || (m_atype != type))
 	{
 		m_changed |= changeAudio;
 		m_atype = type;
 		m_apid = apid;
-		
+
 		m_codec.audio_type = AFORMAT_MPEG;
 		switch (type)
 		{
-		default:
-		case aMPEG:
-			eDebug("%s() audio type: MPEG",__PRETTY_FUNCTION__);
-			break;
-		case aAC3:
-			m_codec.audio_type = AFORMAT_AC3;
-			eDebug("%s() audio type: AC3",__PRETTY_FUNCTION__);
-			break;
-		case aAAC:
-			m_codec.audio_type = AFORMAT_AAC;
-			eDebug("%s() audio type: AAC",__PRETTY_FUNCTION__);
-			break;
-		case aDTS:
-			m_codec.audio_type = AFORMAT_DTS;
-			eDebug("%s() audio type: DTS",__PRETTY_FUNCTION__);
-			break;
-		case aAACHE:
-			m_codec.audio_type = AFORMAT_AAC_LATM;
-			eDebug("%s() audio type: AAC_LATM",__PRETTY_FUNCTION__);
-			break;
+			default:
+			case aMPEG:
+				eDebug("%s() audio type: MPEG",__PRETTY_FUNCTION__);
+				break;
+			case aAC3:
+				m_codec.audio_type = AFORMAT_AC3;
+				eDebug("%s() audio type: AC3",__PRETTY_FUNCTION__);
+				break;
+			case aAAC:
+				m_codec.audio_type = AFORMAT_AAC;
+				eDebug("%s() audio type: AAC",__PRETTY_FUNCTION__);
+				break;
+			case aDTS:
+				m_codec.audio_type = AFORMAT_DTS;
+				eDebug("%s() audio type: DTS",__PRETTY_FUNCTION__);
+				break;
+			case aAACHE:
+				m_codec.audio_type = AFORMAT_AAC_LATM;
+				eDebug("%s() audio type: AAC_LATM",__PRETTY_FUNCTION__);
+				break;
 
 		}
 		eDebug("%s() apid=%d, type=%d",__PRETTY_FUNCTION__, apid, type);
-		
-		if (aml_fd >= 0 ) {
-			
+
+		if (aml_fd >= 0 )
+		{
+
 			audio_decode_stop(adec_handle);
 			audio_decode_release(&adec_handle);
-			
+
 			if(::ioctl(aml_fd, AMSTREAM_IOC_AID, 0xffff) < 0)
 			{
-				eDebug("[eAMLTSMPEGDecoder::play] set audio PID failed");					
+				eDebug("[eAMLTSMPEGDecoder::play] set audio PID failed");
 			}
-			
-					
+
 			if(::ioctl(aml_fd, AMSTREAM_IOC_AFORMAT, m_codec.audio_type) < 0)
 			{
-				eDebug("[eAMLTSMPEGDecoder::play] set audio format failed");						
-			}				
+				eDebug("[eAMLTSMPEGDecoder::play] set audio format failed");
+			}
+
 			if(::ioctl(aml_fd, AMSTREAM_IOC_AID, m_apid) < 0)
 			{
-				eDebug("[eAMLTSMPEGDecoder::play] set audio PID failed");					
+				eDebug("[eAMLTSMPEGDecoder::play] set audio PID failed");
 			}
-			
+
 			if(::ioctl(aml_fd, AMSTREAM_IOC_SAMPLERATE,48000) < 0)
 			{
-				eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_SAMPLERATE failed");					
+				eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_SAMPLERATE failed");
 			}
+
 			if(::ioctl(aml_fd, AMSTREAM_IOC_ACHANNEL, 2) < 0)
 			{
-				eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_ACHANNEL failed");					
+				eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_ACHANNEL failed");
 			}
-										
+
 			/*reset audio*/
 			if(::ioctl(aml_fd, AMSTREAM_IOC_AUDIO_RESET, 0) < 0)
 			{
-				eDebug("[eAMLTSMPEGDecoder::play] audio reset failed");				
+				eDebug("[eAMLTSMPEGDecoder::play] audio reset failed");
 			}
-			
-			audio_decode_init(&adec_handle, &am_param);							
+
+			audio_decode_init(&adec_handle, &am_param);
 		}
 	}
 	return 0;
@@ -272,7 +274,7 @@ RESULT eAMLTSMPEGDecoder::setAudioChannel(int channel)
 {
 	TRACE__
 	if (channel == -1)
-	channel = ac_stereo;
+		channel = ac_stereo;
 	return 0;
 }
 
@@ -360,7 +362,7 @@ RESULT eAMLTSMPEGDecoder::play()
 {
 	TRACE__
 	int ret;
-	
+
 	if (m_state == stateStop)
 	{
 		if ( ((m_apid >= 0) && (m_apid < 0x1FFF)) &&
@@ -370,18 +372,18 @@ RESULT eAMLTSMPEGDecoder::play()
 			/* reuse osdBlank for blackout_policy test    */
 			/* arg. value:				      */
 			/*  1 - on channel change put black frame     */
-			/*  0 - on channel change keep previous frame */		
+			/*  0 - on channel change keep previous frame */
 			osdBlank("/sys/class/video/blackout_policy", 0);
-			
+
 			if(m_radio_pic.length())
-			showSinglePic(m_radio_pic.c_str());
-			
+				showSinglePic(m_radio_pic.c_str());
+
 			if (m_radio_pic_on)
-			finishShowSinglePic();
-			
-			if ((m_vpid >= 0) && (m_vpid < 0x1FFF))	
-			osdBlank("/sys/class/video/blackout_policy", 1);				
-			
+				finishShowSinglePic();
+
+			if ((m_vpid >= 0) && (m_vpid < 0x1FFF))
+				osdBlank("/sys/class/video/blackout_policy", 1);
+
 
 			aml_fd = ::open("/dev/amstream_mpts",  O_RDWR);
 			if(aml_fd < 0)
@@ -390,82 +392,82 @@ RESULT eAMLTSMPEGDecoder::play()
 			}
 			else
 			{
-				eDebug("[eAMLTSMPEGDecoder::play] Amlogic CODEC open success !!!!!");									
+				eDebug("[eAMLTSMPEGDecoder::play] Amlogic CODEC open success !!!!!");
 				
 				if ( ((m_apid >= 0) && (m_apid < 0x1FFF)) &&
 						((m_vpid >= 0) && (m_vpid < 0x1FFF)) )
 					setAvsyncEnable(1);
 				else
 					setAvsyncEnable(0);
-				
-				if ((m_vpid >= 0) && (m_vpid < 0x1FFF))	 
-				{									
+
+				if ((m_vpid >= 0) && (m_vpid < 0x1FFF))
+				{
 					if(::ioctl(aml_fd, AMSTREAM_IOC_VFORMAT, m_codec.video_type) < 0)
 					{
-						eDebug("[eAMLTSMPEGDecoder::play] set video format failed");						
-					}					
+						eDebug("[eAMLTSMPEGDecoder::play] set video format failed");
+					}
 					if(::ioctl(aml_fd, AMSTREAM_IOC_VID, m_vpid) < 0)
 					{
-						eDebug("[eAMLTSMPEGDecoder::play] set video PID failed");					
+						eDebug("[eAMLTSMPEGDecoder::play] set video PID failed");
 					}
 					if(::ioctl(aml_fd, AMSTREAM_IOC_SYSINFO, (unsigned long)&am_sysinfo) < 0)
 					{
-						eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_SYSINFO failed");					
+						eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_SYSINFO failed");
 					}
 				}
 				if ((m_apid >= 0) && (m_apid < 0x1FFF)) 
 				{
 					if(::ioctl(aml_fd, AMSTREAM_IOC_AFORMAT, m_codec.audio_type) < 0)
 					{
-						eDebug("[eAMLTSMPEGDecoder::play] set audio format failed");						
+						eDebug("[eAMLTSMPEGDecoder::play] set audio format failed");
 					}
-					
+
 					if(::ioctl(aml_fd, AMSTREAM_IOC_AID, m_apid) < 0)
 					{
-						eDebug("[eAMLTSMPEGDecoder::play] set audio PID failed");					
+						eDebug("[eAMLTSMPEGDecoder::play] set audio PID failed");
 					}
-					
+
 					if(::ioctl(aml_fd, AMSTREAM_IOC_SAMPLERATE,48000) < 0)
 					{
-						eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_SAMPLERATE failed");					
+						eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_SAMPLERATE failed");
 					}
 					if(::ioctl(aml_fd, AMSTREAM_IOC_ACHANNEL, 2) < 0)
 					{
-						eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_ACHANNEL failed");					
+						eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_ACHANNEL failed");
 					}
 				}
 				if ((m_pcrpid >= 0) && (m_pcrpid < 0x1FFF)) 
 				{
 					if(::ioctl(aml_fd, AMSTREAM_IOC_PCRID, m_pcrpid) < 0)
 					{
-						eDebug("[eAMLTSMPEGDecoder::play] set PCR PID failed");						
+						eDebug("[eAMLTSMPEGDecoder::play] set PCR PID failed");
 					}
 				}
 				setSyncMode(2);
-				
+
 				/* Tell the kernel on which adapter we want HW CSA/LiveTV */
 				if(::ioctl(aml_fd, AMSTREAM_IOC_SET_DEMUX, (unsigned long) ((m_demux) ? ((m_demux->m_pvr_fd) ? 2 : m_demux->getSource()) : 0)) < 0)
 				{
-					eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_SET_DEMUX failed");						
+					eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_SET_DEMUX failed");
 				}
-				
+
 				am_param.channels = 2;
 				am_param.sample_rate = 48000;
 				am_param.handle = aml_fd;
 				am_param.format = m_codec.audio_type;
 				audio_decode_init(&adec_handle, &am_param);
-				audio_set_av_sync_threshold(adec_handle, 60);			
+				audio_set_av_sync_threshold(adec_handle, 60);
 
 				if(::ioctl(aml_fd, AMSTREAM_IOC_PORT_INIT, 0) < 0)
 				{
-					eDebug("[eAMLTSMPEGDecoder::play] amport init failed");				
-				}				
+					eDebug("[eAMLTSMPEGDecoder::play] amport init failed");
+				}
 				if(::ioctl(aml_fd, AMSTREAM_IOC_TS_SKIPBYTE, 0) < 0)
 				{
-					eDebug("[eAMLTSMPEGDecoder::play] set ts skipbyte failed");				
-				}									
-				m_state = statePlay;												
-			}					
+					eDebug("[eAMLTSMPEGDecoder::play] set ts skipbyte failed");
+				}
+				m_state = statePlay;
+			}
 		}
 		else
 		{
@@ -476,12 +478,12 @@ RESULT eAMLTSMPEGDecoder::play()
 
 		audio_decode_resume(adec_handle);
 		
-		if ((m_vpid >= 0) && (m_vpid < 0x1FFF))	 
+		if ((m_vpid >= 0) && (m_vpid < 0x1FFF))
 			::ioctl(aml_fd, AMSTREAM_IOC_VPAUSE, 1);
-		
+
 		if (m_demux && m_demux->m_pvr_fd)
 			::ioctl(m_demux->m_pvr_fd, PVR_P3);
-				
+
 		m_state = statePlay;
 	}
 	return 0;
@@ -493,18 +495,18 @@ RESULT eAMLTSMPEGDecoder::pause()
 	struct adec_status adec;
 	int len = 0;
 	int i;
-	
+
 	if (m_state == statePause)
-	return 0;
-	
+		return 0;
+
 	if (m_demux && m_demux->m_pvr_fd)
 		::ioctl(m_demux->m_pvr_fd, PVR_P0);
-		
+
 	audio_decode_pause(adec_handle);
-        
-	if ((m_vpid >= 0) && (m_vpid < 0x1FFF))	 
+
+	if ((m_vpid >= 0) && (m_vpid < 0x1FFF))
 		::ioctl(aml_fd, AMSTREAM_IOC_VPAUSE, 1);
-			
+
 	m_state = statePause;
 	return 0;
 }
@@ -514,8 +516,8 @@ RESULT eAMLTSMPEGDecoder::setFastForward(int frames_to_skip)
 	TRACE__
 	// fast forward is only possible if video data is present
 	if (!m_codec.has_video)
-	return -1;
-	
+		return -1;
+
 	return 0;
 }
 
@@ -524,8 +526,8 @@ RESULT eAMLTSMPEGDecoder::setSlowMotion(int repeat)
 	TRACE__
 	// slow motion is only possible if video data is present
 	if (!m_codec.has_video)
-	return -1;
-	
+		return -1;
+
 	return 0;
 }
 
@@ -533,8 +535,8 @@ RESULT eAMLTSMPEGDecoder::setTrickmode()
 {
 	TRACE__
 	if (!m_codec.has_video)
-	return -1;
-	
+		return -1;
+
 	return 0;
 }
 
@@ -549,24 +551,24 @@ void eAMLTSMPEGDecoder::demux_event(int event)
 	TRACE__
 	switch (event)
 	{
-	case eDVBDemux::evtFlush:
-		flush();
-		break;
-	default:
-		break;
+		case eDVBDemux::evtFlush:
+			flush();
+			break;
+		default:
+			break;
 	}
 }
 
 RESULT eAMLTSMPEGDecoder::getPTS(int what, pts_t &pts)
 {
 	unsigned int aml_pts;
-	
+
 	if (what == 0) /* auto */
 		what = ((m_vpid >= 0) && (m_vpid < 0x1FFF)) ? 1 : 2;
 
 	if (what == 1) /* video */
-	{		
-		if(::ioctl(aml_fd, AMSTREAM_IOC_VPTS, (unsigned long)&aml_pts) >= 0) 
+	{
+		if(::ioctl(aml_fd, AMSTREAM_IOC_VPTS, (unsigned long)&aml_pts) >= 0)
 		{
 			pts = aml_pts;
 			return 0;
@@ -574,8 +576,8 @@ RESULT eAMLTSMPEGDecoder::getPTS(int what, pts_t &pts)
 	}
 
 	if (what == 2) /* audio */
-	{			
-		if(::ioctl(aml_fd, AMSTREAM_IOC_APTS, (unsigned long)&aml_pts) >= 0) 
+	{
+		if(::ioctl(aml_fd, AMSTREAM_IOC_APTS, (unsigned long)&aml_pts) >= 0)
 		{
 			pts = aml_pts;
 			return 0;
@@ -606,14 +608,14 @@ RESULT eAMLTSMPEGDecoder::showSinglePic(const char *filename)
 			fstat(f, &s);
 #if defined(__sh__) // our driver has a different behaviour for iframes
 			if (m_video_clip_fd >= 0)
-			finishShowSinglePic();
+				finishShowSinglePic();
 #endif
 
-			m_codec.has_video = 1;	
-			m_codec.has_audio = 0;	
+			m_codec.has_video = 1;
+			m_codec.has_audio = 0;
 			m_codec.stream_type = STREAM_TYPE_ES_VIDEO;
 			ret = codec_init(&m_codec);
-			if(ret == CODEC_ERROR_NONE)		
+			if(ret == CODEC_ERROR_NONE)
 			{
 				bool seq_end_avail = false;
 				size_t pos=0;
@@ -624,10 +626,10 @@ RESULT eAMLTSMPEGDecoder::showSinglePic(const char *filename)
 				int streamtype;
 				memset(stuffing, 0, 8192);
 				read(f, iframe, s.st_size);
-				
+
 				setAvsyncEnable(0);
 				m_radio_pic_on = 1;
-				
+
 				while(pos <= (s.st_size-4) && !(seq_end_avail = (!iframe[pos] && !iframe[pos+1] && iframe[pos+2] == 1 && iframe[pos+3] == 0xB7)))
 				++pos;
 				if ((iframe[3] >> 4) != 0xE) // no pes header
@@ -640,7 +642,7 @@ RESULT eAMLTSMPEGDecoder::showSinglePic(const char *filename)
 				writeAll(m_codec.handle, stuffing, 8192);
 #if not defined(__sh__)
 				m_showSinglePicTimer->start(150, true);
-#endif		
+#endif
 			}
 			close(f);
 		}
@@ -664,16 +666,16 @@ void eAMLTSMPEGDecoder::finishShowSinglePic()
 	TRACE__
 	int ret;
 	struct buf_status vbuf;
-	
+
 	if (m_codec.handle >= 0 && m_radio_pic_on) {
 		do {
 			ret = codec_get_vbuf_state(&m_codec, &vbuf);
-			if (ret != 0) 				
-			goto error;		
+			if (ret != 0)
+			goto error;
 		} while (vbuf.data_len > 0x100);
 error:
 		usleep(200000);
-		codec_close(&m_codec);		
+		codec_close(&m_codec);
 		m_radio_pic_on = 0;
 	}
 }
@@ -681,31 +683,31 @@ error:
 void eAMLTSMPEGDecoder::parseVideoInfo()
 {
 	if (m_width == -1 && m_height == -1)
-	{	
+	{
 		int x, y;
 		CFile::parseIntHex(&x, "/proc/stb/vmpeg/0/xres");
 		CFile::parseIntHex(&y, "/proc/stb/vmpeg/0/yres");
-		
+
 		if ( x > 0 && y > 0) {
 			struct iTSMPEGDecoder::videoEvent event;
-			CFile::parseInt(&m_aspect, "/proc/stb/vmpeg/0/aspect");				
+			CFile::parseInt(&m_aspect, "/proc/stb/vmpeg/0/aspect");
 			event.type = iTSMPEGDecoder::videoEvent::eventSizeChanged;
 			m_aspect = event.aspect = m_aspect == 1 ? 2 : 3;  // convert dvb api to etsi
 			m_height = event.height = y;
 			m_width = event.width = x;
-			video_event(event);			
+			video_event(event);
 		}
 	}
-	else if (m_width > 0 && m_framerate == -1)	
+	else if (m_width > 0 && m_framerate == -1)
 	{
 		struct iTSMPEGDecoder::videoEvent event;
-		CFile::parseInt(&m_framerate, "/proc/stb/vmpeg/0/framerate");			
+		CFile::parseInt(&m_framerate, "/proc/stb/vmpeg/0/framerate");
 		event.type = iTSMPEGDecoder::videoEvent::eventFrameRateChanged;
 		event.framerate = m_framerate;
-		video_event(event);		
+		video_event(event);
 	}
-	else if (m_width > 0 && m_progressive == -1) 
-	{		
+	else if (m_width > 0 && m_progressive == -1)
+	{
 		CFile::parseIntHex(&m_progressive, "/proc/stb/vmpeg/0/progressive");
 		if (m_progressive != 2)
 		{
@@ -714,7 +716,7 @@ void eAMLTSMPEGDecoder::parseVideoInfo()
 			event.progressive = m_progressive;
 			video_event(event);
 		}
-	}	
+	}
 }
 
 RESULT eAMLTSMPEGDecoder::connectVideoEvent(const Slot1<void, struct videoEvent> &event, ePtr<eConnection> &conn)
@@ -736,7 +738,7 @@ int eAMLTSMPEGDecoder::getVideoWidth()
 	int m_width = -1;
 	CFile::parseIntHex(&m_width, "/proc/stb/vmpeg/0/xres");
 	if (!m_width)
-	return -1;
+		return -1;
 	eDebug("couldnt open %d", m_width);
 	return m_width;
 }
@@ -747,7 +749,7 @@ int eAMLTSMPEGDecoder::getVideoHeight()
 	int m_height = -1;
 	CFile::parseIntHex(&m_height, "/proc/stb/vmpeg/0/yres");
 	if (!m_height)
-	return -1;
+		return -1;
 	return m_height;
 }
 
@@ -757,7 +759,7 @@ int eAMLTSMPEGDecoder::getVideoProgressive()
 	int m_progressive = -1;
 	CFile::parseIntHex(&m_progressive, "/proc/stb/vmpeg/0/progressive");
 	if (m_progressive == 2)
-	return -1;
+		return -1;
 	return m_progressive;
 }
 
@@ -775,7 +777,7 @@ int eAMLTSMPEGDecoder::getVideoAspect()
 	int m_aspect = -1;
 	CFile::parseInt(&m_aspect, "/proc/stb/vmpeg/0/aspect");
 	if (!m_aspect)
-	return -1;
-	
+		return -1;
+
 	return m_aspect == 1 ? 2 : 3;
 }

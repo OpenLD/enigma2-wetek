@@ -382,7 +382,7 @@ def setAudioTrack(service):
 		idx = 0
 		trackList = []
 		for i in xrange(nTracks):
-		        audioInfo = tracks.getTrackInfo(i)
+				audioInfo = tracks.getTrackInfo(i)
 			lang = audioInfo.getLanguage()
 			if langC.has_key(lang):
 				lang = langC[lang][0]
@@ -815,7 +815,7 @@ class MoviePlayer(InfoBarBase, InfoBarShowHide, InfoBarLongKeyDetection, InfoBar
 				if ref and not self.session.nav.getCurrentlyPlayingServiceOrGroup():
 					self.session.nav.playService(ref)
 			except:
-				pass		
+				pass
 
 	def getPlaylistServiceInfo(self, service):
 		from MovieSelection import playlist

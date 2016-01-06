@@ -75,7 +75,7 @@ def getAboutText():
 	AboutText += _("Python:\t %s") % about.getPythonVersionString() + "\n\n"
 	#AboutText += _("CPU Load:\t %s") % str(about.getLoadCPUString()) + "\n"
 	
-    #AboutText += _("Installed:\t ") + about.getFlashDateString() + "\n"
+	#AboutText += _("Installed:\t ") + about.getFlashDateString() + "\n"
 	#AboutText += _("Restarts:\t %d ") % config.misc.startCounter.value + "\n\n"
 
 	fp_version = getFPVersion()

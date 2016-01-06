@@ -59,8 +59,8 @@ Pulse el boton rojo para continuar cuando crea estar listo y su USB se encuentre
 		self.step = 1
 		self.devices = []
 		self.device = None
-	
-	
+
+
 	def stepOne(self):
 		msg = """Conecte el USB al Receptor
 Pulse el boton rojo para continuar cuando se encuentre listo.
@@ -68,14 +68,14 @@ Pulse el boton rojo para continuar cuando se encuentre listo.
 		self.devices = self.get_Devicelist()
 		self["lab1"].setText(msg)
 		self.step = 2
-		
+
 	def stepTwo(self):
 		msg = """El asistente va intentar identificar el USB conectado.
 Pulse el boton rojo para continuar.
-"""				
+"""
 		self["lab1"].setText(msg)
 		self.step = 3
-	
+
 	def stepThree(self):
 		newdevices = self.get_Devicelist()
 		for d in newdevices:
@@ -88,7 +88,7 @@ Pulse el boton rojo para continuar.
 			msg +="\nAdvertencia: Todo los datos en el USB se eliminaran.\nSeguro que desea formatear este dispositivo?\n"
 			self["lab1"].setText(msg)
 			self.step = 4
-			
+
 	def stepFour(self):
 		device = "/dev/" + self.device
 		partition = device + "1"
@@ -100,20 +100,20 @@ Pulse el boton rojo para continuar.
 			self.do_Format()
 		else:
 			self.do_Part()
-					
+
 
 	def do_Part(self):
 		device = "/dev/%s" % (self.device)
 		cmd = "echo -e 'Particiones: %s \n\n'" % (device)
 		cmd2 = 'printf "0,\n;\n;\n;\ny\n" | sfdisk -f %s' % (device)
 		self.session.open(Console, title="Particionamiento...", cmdlist=[cmd, cmd2], finishedCallback = self.do_Format)
-		
+
 	def do_Format(self):
 		device = "/dev/%s1" % (self.device)
 		cmd = "echo -e 'Formato: %s \n\n'" % (device)
 		cmd2 = "/sbin/mkfs.ext2 %s" % (device)
 		self.session.open(Console, title="Formateando...", cmdlist=[cmd, cmd2], finishedCallback = self.succesS)
-	
+
 	def step_Bump(self):
 		if self.step == 1:
 			self.stepOne()
@@ -123,7 +123,7 @@ Pulse el boton rojo para continuar.
 			self.stepThree()
 		elif self.step == 4:
 			self.stepFour()
-			
+
 	def get_Devicelist(self):
 		devices = []
 		folder = listdir("/sys/block")
@@ -131,7 +131,7 @@ Pulse el boton rojo para continuar.
 			if f.find('sd') != -1:
 				devices.append(f)
 		return devices
-			
+
 	def get_Deviceinfo(self, device):
 		info = vendor = model = size = ""
 		filename = "/sys/block/%s/device/vendor" % (device)
@@ -145,9 +145,9 @@ Pulse el boton rojo para continuar.
 			size = "%d.%03d GB" % (cap/1000, cap%1000)
 		info = "Modelo: %s %s\nCapacidad: %s\nDispositivo: /dev/%s" % (vendor, model, size, device)
 		return info
-	
-	
-	
+
+
+
 	def succesS(self):
 		self.wizClose("USB formateado.\nAhora puede utilizar el Admin de Dispositivos para (Mapear) asignar el punto de montaje que desea (media/hdd media/usb).")
 

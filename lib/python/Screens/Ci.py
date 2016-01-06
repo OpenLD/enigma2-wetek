@@ -265,7 +265,7 @@ class CiMessageHandler:
 		self.ci = { }
 		self.dlgs = { }
 		eDVBCI_UI.getInstance().ciStateChanged.get().append(self.ciStateChanged)
-		if getBoxType() in ('vuzero'):
+		if getBoxType() in ('vuzero', 'wetekplay'):
 			SystemInfo["CommonInterface"] = False
 		else:
 			SystemInfo["CommonInterface"] = eDVBCIInterfaces.getInstance().getNumOfSlots() > 0
@@ -434,7 +434,7 @@ class CiDefaultPinSetup(ConfigListScreen, Screen):
 	def __init__(self, session, args = 0):
 		Screen.__init__(self, session)
 		self.skinName = ["Setup"]
-			
+
 		list = []
 		list.append(getConfigListEntry(_('Default PIN for CI'), config.cipin.pin1))
 		list.append(getConfigListEntry(_('Enable auto PIN'), config.cipin.pin1autook))

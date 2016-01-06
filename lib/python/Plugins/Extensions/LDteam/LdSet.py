@@ -117,8 +117,8 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 		self.list = []
 		self["list"] = List(self.list)
 		self.updateList()
-		
-		
+
+
 		self["actions"] = ActionMap(["WizardActions", "ColorActions"],
 		{
 			"ok": self.KeyOk,
@@ -179,7 +179,7 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 			self.session.open(RestartNetwork)
 		else:
 			self.noYet()
-			
+
 	def noYet(self):
 		nobox = self.session.open(MessageBox, "Funcion Todavia no disponible", MessageBox.TYPE_INFO)
 		nobox.setTitle(_("Info"))
