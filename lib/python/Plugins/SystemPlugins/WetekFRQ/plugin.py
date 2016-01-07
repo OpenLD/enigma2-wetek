@@ -11,10 +11,27 @@
 ##    - Add read ahead options 384 and 3072.
 ##    - 1.416GHz for default.
 ##  06.01.2016:
-##    - Remove remove tabs
+##    - Remove tabs
+##  07.01.2016:
+##    - Hotplug not it stable, REMOVED hotplug.
 ##
 ##          Javier Sayago <admin@lonasdigital.com>
 ## Contact: javilonas@esp-desarrolladores.com
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with GNU gv; see the file COPYING.  If not, write to
+## the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+## Boston, MA 02111-1307, USA.
 ##
 ######################################################
 from Screens.Screen import Screen
@@ -29,11 +46,10 @@ import Screens.Standby
 
 config.plugins.wetek = ConfigSubsection()
 
-config.plugins.wetek.governor = ConfigSelection(default='Interactive', choices=[('hotplug', _('Hotplug')),
-('interactive', _('Interactive')),
+config.plugins.wetek.governor = ConfigSelection(default='Interactive', choices=[('performance', _('Performance')),
+('interactive', _('Interactive (default)')),
 ('conservative', _('Conservative')),
-('ondemand', _('Ondemand')),
-('performance', _('Performance'))])
+('ondemand', _('Ondemand'))])
 config.plugins.wetek.iosd = ConfigSelection(default='2048', choices=[('128', _('128')),
 ('256', _('256')),
 ('384', _('384')),
