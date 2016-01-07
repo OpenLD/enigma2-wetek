@@ -283,10 +283,10 @@ class Swap(Screen):
                 parts = []
                 supported_filesystems = frozenset(('ext4', 'ext3', 'ext2', 'vfat'))
                 candidates = []
-                mounts = getProcMounts() 
+                mounts = getProcMounts()
                 for partition in harddiskmanager.getMountedPartitions(False, mounts):
                         if partition.filesystem(mounts) in supported_filesystems:
-                                candidates.append((partition.description, partition.mountpoint)) 
+                                candidates.append((partition.description, partition.mountpoint))
                 if len(candidates):
                         self.session.openWithCallback(self.doCSplace, ChoiceBox, title = _("Please select device to use as swapfile location"), list = candidates)
                 else:

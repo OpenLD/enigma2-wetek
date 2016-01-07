@@ -73,7 +73,7 @@ MultiContentEntryPixmapAlphaTest(pos = (0, 0), size = (80, 80), png = 2),
 			"red": self.mapSetup,
 			"yellow": self.close
 		})
-		
+
 		self.activityTimer = eTimer()
 		self.activityTimer.timeout.get().append(self.updateList)
 		self.gO()
@@ -194,7 +194,7 @@ class LDSetupDevicePanelConf(Screen, ConfigListScreen):
 			"back": self.close
 
 		})
-		
+
 		self.devices = devices
 		self.updateList()
 
@@ -274,7 +274,7 @@ class LDSwap(Screen):
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		
+
 		self["lab1"] = Label(_("Estado Swap: desactivado"))
 		self["key_red"] = Label(_("Create"))
 		self["key_green"] = Label(_("Remove"))
@@ -341,7 +341,7 @@ class LDSwap(Screen):
 	def selectSize(self, device):
 		if device:
 			self.new_swap = device[1] + "/swapfile"
-			options = [['8 MB', '8192'], ['16 MB', '16384'], ['32 MB', '32768'], ['64 MB', '65536'], ['128 MB', '131072'], ['256 MB', '262144'], ['512 MB', '524288'], ['1024 MB', '1048576']]	
+			options = [['8 MB', '8192'], ['16 MB', '16384'], ['32 MB', '32768'], ['64 MB', '65536'], ['128 MB', '131072'], ['256 MB', '262144'], ['512 MB', '524288'], ['1024 MB', '1048576']]
 			self.session.openWithCallback(self.swapOn,ChoiceBox, title="Selecionar capacidad archivo Swap:", list=options)
 
 	def swapOn(self, size):
@@ -360,5 +360,3 @@ class LDSwap(Screen):
 				self.updateSwap()
 			else:
 				self.session.open(MessageBox, "La creacion de el archivo Swap ha fallado. Compruebe si hay espacio disponible.", MessageBox.TYPE_INFO)
-
-

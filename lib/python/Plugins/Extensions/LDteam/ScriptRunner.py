@@ -66,7 +66,7 @@ class ScriptRunner(Screen):
 
 		self["key_red"] = Button(_("Close"))
 		self["key_green"] = Button(_("Run"))
-		
+
 	def populate_List(self):
 		if not path.exists('/usr/script'):
 			mkdir('/usr/script', 0755)
@@ -98,4 +98,3 @@ class ScriptRunner(Screen):
 
 	def myclose(self):
 		self.close()
-

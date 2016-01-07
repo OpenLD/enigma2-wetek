@@ -21,8 +21,8 @@
 ## limitations under the License.
 ##
 ##########################################################################
-from Screens.Screen import Screen 
-from Screens.Console import Console 
+from Screens.Screen import Screen
+from Screens.Console import Console
 from Screens.MessageBox import MessageBox
 from Screens.InputBox import InputBox
 from Components.ActionMap import ActionMap
@@ -65,7 +65,7 @@ class SundtekControlCenter(Screen, ConfigListScreen):
 			<widget name="btt_red" position="0,0" zPosition="1" size="140,40" font="Regular;20" halign="center" valign="center" backgroundColor="#9f1313" transparent="1" />
 			<widget name="btt_green" position="140,0" zPosition="1" size="140,40" font="Regular;20" halign="center" valign="center" backgroundColor="#9f1313" transparent="1" />
 			<widget name="btt_yellow" position="280,0" zPosition="1" size="140,40" font="Regular;20" halign="center" valign="center" backgroundColor="#1f771f" transparent="1" />
-			<widget name="btt_blue" position="420,0" zPosition="1" size="140,40" font="Regular;20" halign="center" valign="center" backgroundColor="#1f771f" transparent="1" /> 
+			<widget name="btt_blue" position="420,0" zPosition="1" size="140,40" font="Regular;20" halign="center" valign="center" backgroundColor="#1f771f" transparent="1" />
 			<widget name="ok" position="10,292" zPosition="1" size="550,40" font="Regular;20" halign="left" valign="center" transparent="1" />
 			<widget name="infos" position="10,316" zPosition="1" size="450,40" font="Regular;20" halign="left" valign="center" transparent="1" />
 			<widget name="bouquets" position="10,340" zPosition="1" size="450,40" font="Regular;20" halign="left" valign="center" transparent="1" />
@@ -87,7 +87,7 @@ class SundtekControlCenter(Screen, ConfigListScreen):
 		self["infos"] = Label(_("Info = show tuner informations"))
 		self["bouquets"] = Label(_("Bouquet + = install or update driver"))
 		self["netservers"] = Label(_("Bouquet - = scan for IPTV server addresses"))
-		self["actions"] = ActionMap(["OkCancelActions", "ChannelSelectBaseActions", "ColorActions","ChannelSelectEPGActions"], 
+		self["actions"] = ActionMap(["OkCancelActions", "ChannelSelectBaseActions", "ColorActions","ChannelSelectEPGActions"],
 		{
 			"ok": self.save,
 			"cancel": self.cancel,
@@ -101,7 +101,7 @@ class SundtekControlCenter(Screen, ConfigListScreen):
 		},-2)
 
 		self.onLayoutFinish.append(self.layoutFinished)
-	
+
 	def keyLeft(self):
 		ConfigListScreen.keyLeft(self)
 		self.updateSettingList()
@@ -226,7 +226,7 @@ class SundtekControlCenter(Screen, ConfigListScreen):
 			else:
 				self.session.openWithCallback(self.usenetip, MessageBox, networkingscan+_("\n\nUse following address as IPTV media server?\n")+networkingip, MessageBox.TYPE_YESNO)
 
-	def usenetip(self, result): 
+	def usenetip(self, result):
 		if result:
 			config.plugins.SundtekControlCenter.usbnet.selection.setValue("1")
 			config.plugins.SundtekControlCenter.usbnet.networkip.setValue(os.popen("/usr/sundtek/mediaclient --scan-network", "r").read().split()[20])
@@ -245,7 +245,7 @@ def main(session, **kwargs):
 	session.open(SundtekControlCenter)
 
 def SundtekControlCenterStart(menuid):
-	if menuid != "scan": 
+	if menuid != "scan":
 		return [ ]
 	return [(_("Sundtek Control Center"), main, "Sundtek Control Center", 50)]
 

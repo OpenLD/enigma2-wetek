@@ -72,7 +72,7 @@ class LdsysInfo(Screen):
 		self["lab1"] =  Label()
 
 		self.onShow.append(self.updateInfo)
-		
+
 		self["myactions"] = ActionMap(["OkCancelActions"],
 		{
 			"ok": self.close,
@@ -147,4 +147,3 @@ class LdsysInfo(Screen):
 		text += "Kernel: \t" + about.getKernelVersionString() + "\n"
 
 		self["lab1"].setText(text)
-

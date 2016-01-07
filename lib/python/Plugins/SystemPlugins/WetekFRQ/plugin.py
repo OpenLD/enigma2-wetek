@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 ##
-## Mod WetekFRQ by Javilonas: 
+## Mod WetekFRQ by Javilonas:
 ##  31.12.2015:
 ##    - Add Control Scheduler (CFQ for default).
 ##    - Add Control read ahead (2048 for default).

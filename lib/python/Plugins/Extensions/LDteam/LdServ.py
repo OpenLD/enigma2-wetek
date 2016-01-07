@@ -171,14 +171,14 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 		name = "uShare"
 		idx = 7
 		res = (name, png, idx)
-		self.list.append(res)	
+		self.list.append(res)
 
 		mypixmap = mypath + "Telnet.png"
 		png = LoadPixmap(mypixmap)
 		name = "Telnet"
 		idx = 8
 		res = (name, png, idx)
-		self.list.append(res)	
+		self.list.append(res)
 
 		#mypixmap = mypath + "Tuner_Setup.png"
 		#png = LoadPixmap(mypixmap)
@@ -188,6 +188,3 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 		#self.list.append(res)
 
 		self["list"].list = self.list
-
-
-
