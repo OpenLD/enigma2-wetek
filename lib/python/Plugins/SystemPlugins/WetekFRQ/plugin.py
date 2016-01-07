@@ -14,6 +14,7 @@
 ##    - Remove tabs
 ##  07.01.2016:
 ##    - Hotplug not it stable, REMOVED hotplug.
+##    - Fix Governor for default
 ##
 ##          Javier Sayago <admin@lonasdigital.com>
 ## Contact: javilonas@esp-desarrolladores.com
@@ -46,7 +47,7 @@ import Screens.Standby
 
 config.plugins.wetek = ConfigSubsection()
 
-config.plugins.wetek.governor = ConfigSelection(default='Interactive', choices=[('performance', _('Performance')),
+config.plugins.wetek.governor = ConfigSelection(default='interactive', choices=[('performance', _('Performance')),
 ('interactive', _('Interactive (default)')),
 ('conservative', _('Conservative')),
 ('ondemand', _('Ondemand'))])
