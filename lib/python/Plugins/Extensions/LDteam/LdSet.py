@@ -45,7 +45,7 @@ from Screens.Setup import Setup, getSetupTitle
 from Components.Language import language
 from ServiceReference import ServiceReference
 from Components.ScrollLabel import ScrollLabel
-from Components.PluginList import * 
+from Components.PluginList import *
 from Plugins.Plugin import PluginDescriptor
 from Components.PluginComponent import plugins
 from Components.Console import Console as iConsole
@@ -113,7 +113,7 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		
+
 		self.list = []
 		self["list"] = List(self.list)
 		self.updateList()

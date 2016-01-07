@@ -97,7 +97,7 @@ class DeviceManagerConfiguration(Screen, ConfigListScreen):
 		}, -2)
 		self.onShown.append(self.setWindowTitle)
 		self.old_hotplug_enable = config.plugins.devicemanager.hotplug_enable.value
-		
+
 	def setWindowTitle(self):
 		self.setTitle(_("DeviceManager configuration"))
 
@@ -241,7 +241,7 @@ class DeviceManager(Screen):
 		deviceinfo.refresh()
 		for device in deviceinfo.getBlockDevices():
 			deviceEntry = (
-				"%s - %s"%(device["vendor"], device["model"]), # vendor : str, model : str, index 0 
+				"%s - %s"%(device["vendor"], device["model"]), # vendor : str, model : str, index 0
 				_("device : %s")%(device["blockdev"]), # str
 				_("Size : %s")%(byteConversion(device["size"])), # str, bytes
 				_("Partitions : %s")%(len(device["partitions"])), # list
@@ -1262,7 +1262,7 @@ class DeviceInfo():
 			print "get blkid info error (%s)"%cmd
 		return (uuid, partitionType)
 
-	def getPartitionSize(self, partition):		
+	def getPartitionSize(self, partition):
 		devpath = "/sys/block/%s/%s"%( str(partition[:3]), str(partition) )
 		try:
 			size = readFile(devpath + "/size")
@@ -1799,7 +1799,7 @@ def sessionstart(reason, **kwargs):
 def autostart(reason, **kwargs):
 	if reason == 0:
 		try:
-# check at first enigma2 start	
+# check at first enigma2 start
 			if not fileExists(dmconfigfile):
 				print "[DeviceManager] autostart : check devices at first start"
 				sda_isremovable = False
@@ -1867,4 +1867,3 @@ class MessageBox_2_Summary(Screen):
 			<widget source="parent.Text" render="Label" position="0,0" size="256,64" font="Regular;13" halign="center" valign="center" />
 		</screen>
 	"""
-

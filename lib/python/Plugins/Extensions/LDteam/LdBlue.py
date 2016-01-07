@@ -85,7 +85,7 @@ class LDBluePanel(Screen):
  </screen>"""
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		
+
 		self["lab1"] = Label()
 		self["lab2"] = Label(_("Set Default CAM"))
 		self["lab3"] = Label()
@@ -137,7 +137,7 @@ class LDBluePanel(Screen):
 			width = sinfo and sinfo.getInfo(iServiceInformation.sVideoWidth) or -1
 			height = sinfo and sinfo.getInfo(iServiceInformation.sVideoHeight) or -1
 			videosize = "%dx%d" %(width, height)
-			aspect = "16:9" 
+			aspect = "16:9"
 			if aspect in ( 1, 2, 5, 6, 9, 0xA, 0xD, 0xE ):
 				aspect = "4:3"
 		except:
@@ -284,4 +284,3 @@ class LDBp:
 		if len(args):
 			(actionmap, context, action) = args
 			actionmap.action(context, action)
-

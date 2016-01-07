@@ -31,7 +31,7 @@ def InitCiConfig():
 		if SystemInfo["CommonInterfaceSupportsHighBitrates"]:
 			if getBrandOEM() in ('dags', 'blackbox'):
 				config.ci[slot].canHandleHighBitrates = ConfigSelection(choices = [("no", _("No")), ("yes", _("Yes"))], default = "yes")
-			else: 
+			else:
 				config.ci[slot].canHandleHighBitrates = ConfigSelection(choices = [("no", _("No")), ("yes", _("Yes"))], default = "no")
 			config.ci[slot].canHandleHighBitrates.slotid = slot
 			config.ci[slot].canHandleHighBitrates.addNotifier(setCIBitrate)
@@ -139,7 +139,7 @@ class MMIDialog(Screen):
 				answer = str(pin)
 
 			length = len(answer)
-			
+
 			try:
 				pinlen = cur[1].getLength()
 			except:
@@ -441,12 +441,12 @@ class CiDefaultPinSetup(ConfigListScreen, Screen):
 
 		self["key_red"] = Label(_("Exit"))
 		self["key_green"] = Label(_("Save"))
-			
+
 		ConfigListScreen.__init__(self, list)
-		self['actions'] = ActionMap(['OkCancelActions', 'ColorActions'], 
+		self['actions'] = ActionMap(['OkCancelActions', 'ColorActions'],
 		{
-			'red' : self.dontSaveAndExit,  
-			'green': self.saveAndExit, 
+			'red' : self.dontSaveAndExit,
+			'green': self.saveAndExit,
 			'cancel': self.dontSaveAndExit
 		}, -1)
 
@@ -656,4 +656,3 @@ class CIHelperSetup(Screen, ConfigListScreen):
 
 	def myStop(self):
 		self.close()
-

@@ -93,7 +93,7 @@ class ServiceName(Converter, object):
 
 			if tmpref:
 				refsplit = tmpref.split(':')
-				if len(refsplit) >= 3: 
+				if len(refsplit) >= 3:
 					return refsplit[3]
 				else:
 					return tmpref
@@ -107,4 +107,3 @@ class ServiceName(Converter, object):
 	def changed(self, what):
 		if what[0] != self.CHANGED_SPECIFIC or what[1] in (iPlayableService.evStart,):
 			Converter.changed(self, what)
-

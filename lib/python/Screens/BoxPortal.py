@@ -16,7 +16,7 @@ class BoxPortal(Screen):
 
 	def __init__(self, session):
 		Screen.__init__(self, session)
-		
+
 		self["shortcuts"] = ActionMap(["ShortcutActions", "WizardActions"],
 		{
 			"ok": self.okbuttonClick,
@@ -63,7 +63,7 @@ class BoxPortal(Screen):
 			self.teletext_plugin = p
 
 		self.teletext_plugin(session=self.session, service=self.session.nav.getCurrentService())
-			
-	
+
+
 	def exit(self):
 		self.close()

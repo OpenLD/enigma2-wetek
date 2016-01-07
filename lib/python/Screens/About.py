@@ -74,7 +74,7 @@ def getAboutText():
 	AboutText += _("GStreamer:\t%s") % str(about.getGStreamerVersionString().replace('GStreamer','')) + "\n"
 	AboutText += _("Python:\t %s") % about.getPythonVersionString() + "\n\n"
 	#AboutText += _("CPU Load:\t %s") % str(about.getLoadCPUString()) + "\n"
-	
+
 	#AboutText += _("Installed:\t ") + about.getFlashDateString() + "\n"
 	#AboutText += _("Restarts:\t %d ") % config.misc.startCounter.value + "\n\n"
 
@@ -431,7 +431,7 @@ class SystemNetworkInfo(Screen):
 			if wlan0.has_key('netmask'):
 				self.AboutText += _("Netmask:") + "\t" + wlan0['netmask'] + "\n"
 			if wlan0.has_key('brdaddr'):
-				self.AboutText += _('Broadcast:\t' + wlan0['brdaddr'] + "\n")	
+				self.AboutText += _('Broadcast:\t' + wlan0['brdaddr'] + "\n")
 			if wlan0.has_key('hwaddr'):
 				self.AboutText += _("MAC:") + "\t" + wlan0['hwaddr'] + "\n"
 			self.iface = 'wlan0'
@@ -668,4 +668,3 @@ class TranslationInfo(Screen):
 				"cancel": self.close,
 				"ok": self.close,
 			})
-

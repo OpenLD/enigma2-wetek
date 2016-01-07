@@ -153,7 +153,3 @@ Pulse el boton rojo para continuar.
 
 	def wizClose(self, msg):
 		self.session.openWithCallback(self.close, MessageBox, msg, MessageBox.TYPE_INFO)
-
-
-
-
