@@ -92,6 +92,7 @@
 		<key id="KEY_RECORD" mapto="instantRecord" flags="m" />
 		<key id="KEY_RECORD" mapto="ShortRecord" flags="b" />
 		<key id="KEY_RECORD" mapto="LongRecord" flags="l" />
+		<key id="KEY_RED" mapto="instantRecord" flags="b" />
 	</map>
 
 	<map context="InfobarExtensions">
@@ -261,38 +262,8 @@
 	</map>
 
 	<map context="InfobarAudioSelectionActions">
-		<device name="dreambox advanced remote control (native)">
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="b" />
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="l" />
-		</device>
-		<device name="dreambox remote control (native)">
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="b" />
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="l" />
-		</device>
-		<device name="gigablue remote control">
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="b" />
-			<key id="KEY_AUDIO" mapto="audioSelection" flags="m" />
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="l" />
-		</device>
-		<device name="wetek remote control">
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="b" />
-			<key id="KEY_AUDIO" mapto="audioSelection" flags="m" />
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="l" />
-		</device>
-		<device name="OPTIMUSS OS2+ remote control (native)">
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="b" />
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="l" />
-		</device>
-		<device name="OPTIMUSS OS1+ remote control (native)">
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="b" />
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="l" />
-		</device>
-		<device name="remote control">
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="b" />
-			<key id="KEY_YELLOW" mapto="audioSelection" flags="l" />
-		</device>		
-		<key id="KEY_AUDIO" mapto="audio_key" flags="b" />
-		<key id="KEY_OPTION" mapto="audioSelection" flags="m" />
+		<key id="KEY_AUDIO" mapto="audioSelection" flags="m" />
+		<key id="KEY_AUDIO" mapto="audioSelectionLong" flags="l" />
 	</map>
 
 	<map context="InfobarAspectSelectionActions">
@@ -302,7 +273,7 @@
 	</map>
 
 	<map context="InfobarSubtitleSelectionActions">
-		<key id="KEY_SUBTITLE" mapto="subtitleSelection" flags="m" />
+		<key id="KEY_SUBTITLE" mapto="subtitleSelection" flags="b" />
 	</map>
 
 	<map context="InfobarSubserviceSelectionActions">
@@ -349,9 +320,6 @@
 		<key id="KEY_POWER" mapto="power_down" flags="m" />
 		<key id="KEY_POWER" mapto="power_up" flags="b" />
 		<key id="KEY_KP0" mapto="discrete_off" flags="m" />
-		<device name="dreambox front panel">
-			<key id="KEY_POWER" mapto="deepstandby" flags="l" />
-		</device>
 	</map>
 
 	<map context="PowerKeyActions">
@@ -379,20 +347,6 @@
 	</map>
 
 	<map context="InfobarSeekActions">
-		<device name="dreambox advanced remote control (native)">
-			<key id="KEY_PREVIOUSSONG" mapto="seekBack" flags="b" />
-			<key id="KEY_NEXTSONG" mapto="seekFwd" flags="b" />
-			<key id="KEY_PREVIOUSSONG" mapto="SeekbarBack" flags="l" />
-			<key id="KEY_NEXTSONG" mapto="SeekbarFwd" flags="l" />
-		</device>
-		<device name="dreambox remote control (native)">
-			<key id="KEY_YELLOW" mapto="pauseServiceYellow" flags="b" />
-			<key id="KEY_GREEN" mapto="playpauseService" flags="b" />
-			<key id="KEY_RED" mapto="seekBack" flags="b" />
-			<key id="KEY_BLUE" mapto="seekFwd" flags="b" />
-			<key id="KEY_RED" mapto="SeekbarBack" flags="l" />
-			<key id="KEY_BLUE" mapto="SeekbarFwd" flags="l" />
-		</device>
 		<key id="KEY_PLAYPAUSE" mapto="playpauseService" flags="m" />
 		<key id="KEY_PAUSE" mapto="pauseService" flags="m" />
 		<key id="KEY_PLAY" mapto="playpauseService" flags="m" />
@@ -424,21 +378,6 @@
 	</map>
 
 	<map context="MovielistSeekActions">
-		<device name="dreambox advanced remote control (native)">
-			<key id="KEY_PREVIOUSSONG" mapto="seekBack" flags="b" />
-			<key id="KEY_NEXTSONG" mapto="seekFwd" flags="b" />
-			<key id="KEY_PREVIOUSSONG" mapto="SeekbarBack" flags="l" />
-			<key id="KEY_NEXTSONG" mapto="SeekbarFwd" flags="l" />
-		</device>
-		<device name="dreambox remote control (native)">
-			<key id="KEY_YELLOW" mapto="pauseService" flags="b" />
-			<key id="KEY_GREEN" mapto="playpauseService" flags="b" />
-			<key id="KEY_RED" mapto="seekBack" flags="b" />
-			<key id="KEY_BLUE" mapto="seekFwd" flags="b" />
-			<key id="KEY_RED" mapto="SeekbarBack" flags="l" />
-			<key id="KEY_BLUE" mapto="SeekbarFwd" flags="l" />
-		</device>
-
 		<key id="KEY_PLAYPAUSE" mapto="playpauseService" flags="m" />
 		<key id="KEY_PAUSE" mapto="pauseService" flags="m" />
 		<key id="KEY_PLAY" mapto="playpauseService" flags="m" />
@@ -459,14 +398,6 @@
 	</map>
 
 	<map context="InfobarSeekActionsPTS">
-		<device name="dreambox remote control (native)">
-			<key id="KEY_YELLOW" mapto="pauseService" flags="b" />
-			<key id="KEY_GREEN" mapto="playpauseService" flags="b" />
-			<key id="KEY_RED" mapto="seekBack" flags="b" />
-			<key id="KEY_BLUE" mapto="seekFwd" flags="b" />
-			<key id="KEY_RED" mapto="seekBackManual" flags="l" />
-			<key id="KEY_BLUE" mapto="seekFwdManual" flags="l" />
-		</device>
 		<key id="KEY_YELLOW" mapto="playpauseService" flags="m" />
 		<key id="KEY_PLAYPAUSE" mapto="playpauseService" flags="m" />
 		<key id="KEY_PAUSE" mapto="pauseService" flags="m" />
@@ -498,12 +429,6 @@
 
 
 	<map context="MediaPlayerSeekActions">
-		<device name="dreambox advanced remote control (native)">
-			<key id="KEY_PREVIOUSSONG" mapto="seekBack" flags="b" />
-			<key id="KEY_NEXTSONG" mapto="seekFwd" flags="b" />
-			<key id="KEY_PREVIOUSSONG" mapto="seekBackManual" flags="l" />
-			<key id="KEY_NEXTSONG" mapto="seekFwdManual" flags="l" />
-		</device>
 
 		<key id="KEY_RED" mapto="seekBack" flags="b" />
 		<key id="KEY_BLUE" mapto="seekFwd" flags="b" />
@@ -531,22 +456,7 @@
 		<key id="KEY_9" mapto="seekdef:9" flags="m" />
 	</map>
 
-	<map context="InfobarTimeshiftActions">
-		<device name="dreambox advanced remote control (native)">
-			<key id="KEY_PLAY" mapto="timeshiftStart" flags="m" />
-			<key id="KEY_TV" mapto="timeshiftStop" flags="m" />
-			<key id="KEY_STOP" mapto="timeshiftStop" flags="m" />
-		</device>
-		<device name="dreambox remote control (native)">
-			<key id="KEY_YELLOW" mapto="timeshiftStart" flags="b" />
-			<key id="KEY_TV" mapto="timeshiftStop" flags="m" />
-		</device>
-		<device name="dreambox ir keyboard">
-			<key id="KEY_YELLOW" mapto="timeshiftStart" flags="m" />
-			<key id="KEY_PAUSE" mapto="timeshiftStart" flags="m" />
-			<key id="KEY_TV" mapto="timeshiftStop" flags="m" />
-			<key id="KEY_STOP" mapto="timeshiftStop" flags="m" />
-		</device>		
+	<map context="InfobarTimeshiftActions">	
 		<key id="KEY_PLAYPAUSE" mapto="timeshiftStart" flags="m" />
 		<key id="KEY_PAUSE" mapto="timeshiftStart" flags="m" />
 		<key id="KEY_STOP" mapto="timeshiftStop" flags="m" />
@@ -558,9 +468,6 @@
 	</map>
 
 	<map context="InfobarTimeshiftActivateActions">
-		<device name="dreambox advanced remote control (native)">
-			<key id="KEY_PREVIOUSSONG" mapto="timeshiftActivateEnd" flags="m" />
-		</device>
 
 <!--		<key id="KEY_RED" mapto="timeshiftActivateEndR" flags="b" />
 		<key id="KEY_YELLOW" mapto="timeshiftActivateEndAndPauseY" flags="b" /> -->
@@ -606,20 +513,12 @@
 	</map>
 
 	<map context="InfobarCueSheetActions">
-		<device name="dreambox ir keyboard">
-			<key id="KEY_PREVIOUSSONG" mapto="jumpPreviousMark" flags="m" />
-			<key id="KEY_TAB" mapto="toggleMark" flags="m" />
-			<key id="KEY_NEXTSONG" mapto="jumpNextMark" flags="m" />
-		</device>
 		<key id="KEY_PREVIOUS" mapto="jumpPreviousMark" flags="m" />
 		<key id="KEY_0" mapto="toggleMark" flags="m" />
 		<key id="KEY_NEXT" mapto="jumpNextMark" flags="m" />
 	</map>
 
 	<map context="MediaPlayerCueSheetActions">
-		<device name="dreambox ir keyboard">
-			<key id="KEY_TAB" mapto="toggleMark" flags="m" />
-		</device>
 		<key id="KEY_0" mapto="toggleMark" flags="m" />
 	</map>
 
@@ -773,6 +672,12 @@
 		<key id="KEY_BLUE" mapto="bluelong" flags="l"/>
 	</map>
 
+	<map context="FunctionKeyActions">
+		<key id="KEY_F1" mapto="f1" flags="m"/>
+		<key id="KEY_F2" mapto="f2" flags="m"/>
+		<key id="KEY_F3" mapto="f3" flags="m"/>
+	</map>
+
 	<map context="MsgBoxActions">
 		<key id="KEY_GREEN" mapto="alwaysOK" flags="m" />
 		<key id="KEY_OK" mapto="ok" flags="m" />
@@ -852,23 +757,12 @@
 	</map>
 
 	<map context="MediaPlayerActions">
-		<device name="dreambox advanced remote control (native)">
-			<key id="KEY_RECORD" mapto="shift_record" flags="l" />
-			<key id="KEY_PREVIOUS" mapto="previous" flags="m" />
-			<key id="KEY_NEXT" mapto="next" flags="m" />
-		</device>
-
 		<key id="KEY_YELLOW" mapto="pause" flags="b" />
 		<key id="KEY_GREEN" mapto="play" flags="b" />
 		<key id="KEY_RADIO" mapto="shift_record" flags="l" />
 		<key id="KEY_PREVIOUS" mapto="previous" flags="m" />
 		<key id="KEY_NEXT" mapto="next" flags="m" />
 
-		<device name="dreambox ir keyboard">
-			<key id="KEY_RECORD" mapto="shift_record" flags="l" />
-			<key id="KEY_PREVIOUSSONG" mapto="previous" flags="m" />
-			<key id="KEY_NEXTSONG" mapto="next" flags="m" />
-		</device>
 		<key id="KEY_PLAYPAUSE" mapto="pause" flags="m" />
 		<key id="KEY_PAUSE" mapto="pause" flags="m" />
 		<key id="KEY_PLAY" mapto="play" flags="m" />
@@ -963,6 +857,7 @@
 		<key id="KEY_HELP" mapto="displayHelp" flags="b"/>
 		<key id="KEY_HELP" mapto="displayHelp_long" flags="l"/>
 		<key id="KEY_SUBTITLE" mapto="subtitle" flags="b"/>
+		<key id="KEY_SUBTITLE" mapto="subtitle_long" flags="l"/>
 		<key id="KEY_MENU" mapto="mainMenu" flags="b"/>
 		<key id="KEY_INFO" mapto="info" flags="b"/>
 		<key id="KEY_INFO" mapto="info_long" flags="l"/>
@@ -1039,3 +934,4 @@
 		<key id="KEY_RED" mapto="subtitles" flags="m" />
 	</map>
 </keymap>
+
