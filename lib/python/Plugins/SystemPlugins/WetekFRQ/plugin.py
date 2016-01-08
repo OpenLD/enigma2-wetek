@@ -15,6 +15,8 @@
 ##  07.01.2016:
 ##    - Hotplug not it stable, REMOVED hotplug.
 ##    - Fix Governor for default
+##  08.01.2016:
+##    - Mod Freq Max for default (1.104GHz) Looking stability 100%.
 ##
 ##          Javier Sayago <admin@lonasdigital.com>
 ## Contact: javilonas@esp-desarrolladores.com
@@ -61,7 +63,7 @@ config.plugins.wetek.iosd = ConfigSelection(default='2048', choices=[('128', _('
 config.plugins.wetek.scheduler = ConfigSelection(default='cfq', choices=[('nop', _('NOP')),
 ('deadline', _('Deadline')),
 ('cfq', _('CFQ (default)'))])
-config.plugins.wetek.workfrq = ConfigSelection(default='1416000', choices=[('96000', _('96MHz')),
+config.plugins.wetek.workfrq = ConfigSelection(default='1104000', choices=[('96000', _('96MHz')),
 ('192000', _('192MHz')),
 ('312000', _('312MHz')),
 ('408000', _('408MHz')),
@@ -71,10 +73,10 @@ config.plugins.wetek.workfrq = ConfigSelection(default='1416000', choices=[('960
 ('816000', _('816MHz')),
 ('912000', _('912MHz')),
 ('1008000', _('1.08GHz')),
-('1104000', _('1.104GHz')),
+('1104000', _('1.104GHz (default)')),
 ('1200000', _('1.2GHz')),
 ('1296000', _('1.296GHz')),
-('1416000', _('1.416GHz (default)')),
+('1416000', _('1.416GHz')),
 ('1512000', _('1.512GHz'))])
 config.plugins.wetek.stdbyfrq = ConfigSelection(default='600000', choices=[('96000', _('96MHz')),
 ('192000', _('192MHz')),
