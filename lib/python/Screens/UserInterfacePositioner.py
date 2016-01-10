@@ -14,7 +14,7 @@ from boxbranding import getBoxType, getBrandOEM
 def InitOsd():
 	SystemInfo["CanChange3DOsd"] = access('/proc/stb/fb/3dmode', R_OK) and True or False
 	SystemInfo["CanChangeOsdAlpha"] = access('/proc/stb/video/alpha', R_OK) and True or False
-	SystemInfo["CanChangeOsdPosition"] = access('/proc/stb/fb/dst_left', R_OK) and True or False
+	SystemInfo["CanChangeOsdPosition"] = access('/proc/stb/vmpeg/0/dst_left', R_OK) and True or False
 	SystemInfo["OsdSetup"] = SystemInfo["CanChangeOsdPosition"]
 	if SystemInfo["CanChangeOsdAlpha"] == True or SystemInfo["CanChangeOsdPosition"] == True:
 		SystemInfo["OsdMenu"] = True
@@ -27,28 +27,28 @@ def InitOsd():
 
 	def setOSDLeft(configElement):
 		if SystemInfo["CanChangeOsdPosition"]:
-			f = open("/proc/stb/fb/dst_left", "w")
+			f = open("/proc/stb/vmpeg/0/dst_left", "w")
 			f.write('%X' % configElement.value)
 			f.close()
 	config.osd.dst_left.addNotifier(setOSDLeft)
 
 	def setOSDWidth(configElement):
 		if SystemInfo["CanChangeOsdPosition"]:
-			f = open("/proc/stb/fb/dst_width", "w")
+			f = open("/proc/stb/vmpeg/0/dst_width", "w")
 			f.write('%X' % configElement.value)
 			f.close()
 	config.osd.dst_width.addNotifier(setOSDWidth)
 
 	def setOSDTop(configElement):
 		if SystemInfo["CanChangeOsdPosition"]:
-			f = open("/proc/stb/fb/dst_top", "w")
+			f = open("/proc/stb/vmpeg/0/dst_top", "w")
 			f.write('%X' % configElement.value)
 			f.close()
 	config.osd.dst_top.addNotifier(setOSDTop)
 
 	def setOSDHeight(configElement):
 		if SystemInfo["CanChangeOsdPosition"]:
-			f = open("/proc/stb/fb/dst_height", "w")
+			f = open("/proc/stb/vmpeg/0/dst_height", "w")
 			f.write('%X' % configElement.value)
 			f.close()
 	config.osd.dst_height.addNotifier(setOSDHeight)
