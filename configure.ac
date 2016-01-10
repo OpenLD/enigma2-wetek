@@ -647,6 +647,7 @@ lib/python/Plugins/Extensions/OpenIPTV/Makefile
 lib/python/Plugins/Extensions/RCUSelect/conf/Makefile
 lib/python/Plugins/Extensions/RCUSelect/meta/Makefile
 lib/python/Plugins/Extensions/RCUSelect/Makefile
+lib/python/Plugins/Extensions/USBsafe/Makefile
 lib/python/Plugins/Extensions/LDteam/Makefile
 lib/python/Plugins/Extensions/LDteam/scripts/Makefile
 lib/python/Plugins/Extensions/LDteam/extras/Makefile
@@ -676,6 +677,7 @@ lib/python/Plugins/SystemPlugins/VideoEnhancement/meta/Makefile
 lib/python/Plugins/SystemPlugins/VideoTune/Makefile
 lib/python/Plugins/SystemPlugins/VideoTune/meta/Makefile
 lib/python/Plugins/SystemPlugins/WetekFRQ/Makefile
+lib/python/Plugins/SystemPlugins/WetekSync/Makefile
 lib/python/Plugins/SystemPlugins/WirelessLan/Makefile
 lib/python/Plugins/SystemPlugins/WirelessLan/meta/Makefile
 lib/python/Plugins/SystemPlugins/SkinSelector/Makefile
