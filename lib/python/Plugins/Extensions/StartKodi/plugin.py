@@ -25,7 +25,7 @@ class StartKodi2(Screen):
 	isinstalled = False
 
 	skin = """
-		<screen position="center,center" size="500,200" title="Start Kodi">
+		<screen position="center,center" size="500,200" title="Kodi Media Center">
 		<widget name="text" position="30,30" size="360,25" font="Regular;25" />
 		<widget name="sd_label" position="30,100" size="310,25" font="Regular;20" />
 		<widget name="freespace_label" position="30,125" size="310,25" font="Regular;20" />
@@ -174,12 +174,12 @@ def main(session, **kwargs):
 
 def menu(menuid, **kwargs):
 	if menuid == "mainmenu":
-		return [(_("Start Kodi"), main, "start_kodi", 44)]
+		return [(_("Kodi Media Center"), main, "start_kodi", 44)]
 	return []
 
 def Plugins(**kwargs):
 	return [
-	PluginDescriptor(name = _("Start Kodi"), description = _("WeTek media player"), 	where = PluginDescriptor.WHERE_PLUGINMENU, icon = "kodi.png", needsRestart = False, fnc = main),
-	PluginDescriptor(name = _("Start Kodi"), description = _("Play back media files"), where = PluginDescriptor.WHERE_MENU, needsRestart = False, fnc = menu)
+	PluginDescriptor(name = _("Kodi Media Center"), description = _("Kodi Media Center for WeTek Play"), 	where = PluginDescriptor.WHERE_PLUGINMENU, icon = "kodi.png", needsRestart = False, fnc = main),
+	PluginDescriptor(name = _("Kodi Media Center"), description = _("Play back media files"), where = PluginDescriptor.WHERE_MENU, needsRestart = False, fnc = menu)
 ]
 #	PluginDescriptor(name = _("StartKodi"), description = _("Play back media files"), where = PluginDescriptor.WHERE_EXTENSIONSMENU, needsRestart = False, fnc = menu)
