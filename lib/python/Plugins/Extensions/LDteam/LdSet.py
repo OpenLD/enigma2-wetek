@@ -151,6 +151,9 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 			self.session.open(Swap)
 		elif self.sel == 4:
 			self.openSetup("userinterface")
+		elif self.sel == 5:
+			from Screens.NcamInfo import NcamInfoMenu
+			self.session.open(NcamInfoMenu)
 		elif self.sel == 6:
 			from Screens.OScamInfo import OscamInfoMenu
 			self.session.open(OscamInfoMenu)
@@ -310,6 +313,13 @@ MultiContentEntryPixmapAlphaTest(pos = (4, 2), size = (40, 40), png = 1),
 		else:
 			name = _("Reset Network")
 		idx = 15
+		res = (name, png, idx)
+		self.list.append(res)
+
+		mypixmap = mypath + "Module.png"
+		png = LoadPixmap(mypixmap)
+		name = "NcamInfo"
+		idx = 5
 		res = (name, png, idx)
 		self.list.append(res)
 
