@@ -11,7 +11,7 @@ SUBDIRS += AnimationSetup
 endif
 
 if WETEK
-SUBDIRS += WetekFRQ WetekSync
+SUBDIRS += WetekFRQ WetekSync WetekAudio
 endif
 
 if DREAMBOX
