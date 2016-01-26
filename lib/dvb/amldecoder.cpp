@@ -71,7 +71,7 @@ eAMLTSMPEGDecoder::eAMLTSMPEGDecoder(eDVBDemux *demux, int decoder)
 		m_vpid(-1), m_vtype(-1), m_apid(-1), m_atype(-1), m_pcrpid(-1), m_textpid(-1),
 		m_width(-1), m_height(-1), m_framerate(-1), m_aspect(-1), m_progressive(-1),
 		m_changed(0), m_decoder(decoder), m_radio_pic_on(0), m_video_clip_fd(-1),
-		aml_fd(-1), m_showSinglePicTimer(eTimer::create(eApp)), m_VideoRead(eTimer::create(eApp))
+		aml_fd(-1), cntl_fd(-1), m_showSinglePicTimer(eTimer::create(eApp)), m_VideoRead(eTimer::create(eApp))
 {
 	TRACE__
 	if (m_demux)
@@ -93,6 +93,7 @@ eAMLTSMPEGDecoder::eAMLTSMPEGDecoder(eDVBDemux *demux, int decoder)
 	if (m_demux && m_decoder == 0)	// Tuxtxt caching actions only on primary decoder
 		eTuxtxtApp::getInstance()->initCache();
 
+	cntl_fd = ::open("/dev/amvideo",  O_RDWR);
 }
 
 eAMLTSMPEGDecoder::~eAMLTSMPEGDecoder()
@@ -117,6 +118,8 @@ eAMLTSMPEGDecoder::~eAMLTSMPEGDecoder()
 	if (aml_fd >= 0)
 		close(aml_fd);
 
+	if (cntl_fd >= 0)
+	close(cntl_fd);
 	setSyncMode(0);
 }
 
@@ -394,11 +397,7 @@ RESULT eAMLTSMPEGDecoder::play()
 			{
 				eDebug("[eAMLTSMPEGDecoder::play] Amlogic CODEC open success !!!!!");
 				
-				if ( ((m_apid >= 0) && (m_apid < 0x1FFF)) &&
-						((m_vpid >= 0) && (m_vpid < 0x1FFF)) )
-					setAvsyncEnable(1);
-				else
-					setAvsyncEnable(0);
+				setAvsyncEnable(0);
 
 				if ((m_vpid >= 0) && (m_vpid < 0x1FFF))
 				{
@@ -443,7 +442,6 @@ RESULT eAMLTSMPEGDecoder::play()
 						eDebug("[eAMLTSMPEGDecoder::play] set PCR PID failed");
 					}
 				}
-				setSyncMode(2);
 
 				/* Tell the kernel on which adapter we want HW CSA/LiveTV */
 				if(::ioctl(aml_fd, AMSTREAM_IOC_SET_DEMUX, (unsigned long) ((m_demux) ? ((m_demux->m_pvr_fd) ? 2 : m_demux->getSource()) : 0)) < 0)
@@ -456,7 +454,14 @@ RESULT eAMLTSMPEGDecoder::play()
 				am_param.handle = aml_fd;
 				am_param.format = m_codec.audio_type;
 				audio_decode_init(&adec_handle, &am_param);
-				audio_set_av_sync_threshold(adec_handle, 60);
+
+				if (cntl_fd >= 0) {
+						if(::ioctl(cntl_fd, AMSTREAM_IOC_AVTHRESH, (unsigned long)90000 * 30 ) < 0)
+							eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_AVTHRESH failed");
+						if(::ioctl(cntl_fd, AMSTREAM_IOC_SYNCTHRESH, (unsigned long) 0) < 0)
+							eDebug("[eAMLTSMPEGDecoder::play] set AMSTREAM_IOC_SYNCTHRESH failed");
+				} else
+						eDebug("[eAMLTSMPEGDecoder::play] cntl_fd NULL");
 
 				if(::ioctl(aml_fd, AMSTREAM_IOC_PORT_INIT, 0) < 0)
 				{
@@ -479,7 +484,7 @@ RESULT eAMLTSMPEGDecoder::play()
 		audio_decode_resume(adec_handle);
 		
 		if ((m_vpid >= 0) && (m_vpid < 0x1FFF))
-			::ioctl(aml_fd, AMSTREAM_IOC_VPAUSE, 1);
+			::ioctl(aml_fd, AMSTREAM_IOC_VPAUSE, 0);
 
 		if (m_demux && m_demux->m_pvr_fd)
 			::ioctl(m_demux->m_pvr_fd, PVR_P3);
