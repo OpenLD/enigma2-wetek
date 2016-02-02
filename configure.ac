@@ -83,7 +83,7 @@ AM_CONDITIONAL(SPARK, test `echo "$BOXTYPE" | cut -b 1-5` == "spark")
 AM_CONDITIONAL(UNIBOXHDE, test "$BOXTYPE" == uniboxhde)
 AM_CONDITIONAL(EVO, test `echo "$BOXTYPE" | cut -b 1-4` == "enfi")
 AM_CONDITIONAL(MIRACLEBOX, test `echo "$BOXTYPE" | cut -b 1-2` == "mb")
-AM_CONDITIONAL(WETEKPLAY, test "$BOXTYPE" == wetekplay)
+AM_CONDITIONAL(WETEKPLAY, test "$BOXTYPE" == wetekplay -o "$BOXTYPE" == "wetekplayplus")
 AM_CONDITIONAL(AZBOXME, test "$BOXTYPE" == azboxme)
 AM_CONDITIONAL(AZBOXMINIME, test "$BOXTYPE" == azboxminime)
 AM_CONDITIONAL(AZBOXHD, test "$BOXTYPE" == azboxhd)
@@ -362,7 +362,7 @@ if test "$BOXTYPE" == "dm7080" -o "$BOXTYPE" == "dm820"; then
 fi
 
 ### for now leave enabled, probably alphablending should be disabled
-if test "$BOXTYPE" == "wetekplay"; then
+if test "$BOXTYPE" == "wetekplay" -o "$BOXTYPE" == "wetekplayplus"; then
 #	AC_DEFINE(FORCE_NO_BLENDING_ACCELERATION, 1,[define when the framebuffer acceleration does not have alphablending support, though the autodetection might indicate that it does])
 #	AC_DEFINE(FORCE_NO_ACCELNEVER, 1,[define when the framebuffer acceleration auto not working correct])
 	AC_DEFINE(KEY_F7_TO_KEY_MENU, 1,[define when rc sends a KEY_F7 event for its KEY_MENU])
