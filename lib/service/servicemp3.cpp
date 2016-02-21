@@ -394,7 +394,6 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 	m_pump(eApp, 1)
 {
 	m_subtitle_sync_timer = eTimer::create(eApp);
-	m_streamingsrc_timeout = 0;
 	m_stream_tags = 0;
 	m_currentAudioStream = -1;
 	m_currentSubtitleStream = -1;
@@ -516,8 +515,6 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 	if ( m_sourceinfo.is_streaming )
 	{
 		uri = g_strdup_printf ("%s", filename);
-		m_streamingsrc_timeout = eTimer::create(eApp);;
-		CONNECT(m_streamingsrc_timeout->timeout, eServiceMP3::sourceTimeout);
 
 		if ( m_ref.getData(7) & BUFFERING_ENABLED )
 		{
@@ -772,13 +769,6 @@ RESULT eServiceMP3::start()
 	return 0;
 }
 
-void eServiceMP3::sourceTimeout()
-{
-	eDebug("eServiceMP3::http source timeout! issuing eof...");
-	stop();
-	m_event((iPlayableService*)this, evEOF);
-}
-
 RESULT eServiceMP3::stop()
 {
 	if (!m_gst_playbin || m_state == stStopped)
@@ -803,8 +793,6 @@ RESULT eServiceMP3::stop()
 	saveCuesheet();
 	m_subtitles_paused = false;
 	m_nownext_timer->stop();
-	if (m_streamingsrc_timeout)
-		m_streamingsrc_timeout->stop();
 
 	return 0;
 }
@@ -1661,7 +1649,7 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 			if(old_state == new_state)
 				break;
 
-			eDebug("eServiceMP3::state transition %s -> %s", gst_element_state_get_name(old_state), gst_element_state_get_name(new_state));
+			//eDebug("eServiceMP3::state transition %s -> %s", gst_element_state_get_name(old_state), gst_element_state_get_name(new_state));
 
 			GstStateChange transition = (GstStateChange)GST_STATE_TRANSITION(old_state, new_state);
 
@@ -1752,8 +1740,6 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 				}	break;
 				case GST_STATE_CHANGE_PAUSED_TO_PLAYING:
 				{
-					if ( m_sourceinfo.is_streaming && m_streamingsrc_timeout )
-						m_streamingsrc_timeout->stop();
 					m_paused = false;
 					if (m_seek_paused)
 					{
@@ -1801,6 +1787,13 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 						m_event((iPlayableService*)this, evUser+11);
 					else if ( g_strrstr(sourceName, "audiosink") )
 						m_event((iPlayableService*)this, evUser+10);
+				}
+			}
+			else if ( err->domain == GST_RESOURCE_ERROR )
+			{
+				if ( err->code == GST_RESOURCE_ERROR_OPEN_READ || err->code == GST_RESOURCE_ERROR_READ )
+				{
+					stop();
 				}
 			}
 			g_error_free(err);
@@ -1926,7 +1919,7 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 			g_object_get (m_gst_playbin, "n-audio", &n_audio, NULL);
 			g_object_get (m_gst_playbin, "n-text", &n_text, NULL);
 
-			eDebug("eServiceMP3::async-done - %d video, %d audio, %d subtitle", n_video, n_audio, n_text);
+			//eDebug("eServiceMP3::async-done - %d video, %d audio, %d subtitle", n_video, n_audio, n_text);
 
 			if ( n_video + n_audio <= 0 )
 				stop();
@@ -1950,7 +1943,7 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 					continue;
 				GstStructure* str = gst_caps_get_structure(caps, 0);
 				const gchar *g_type = gst_structure_get_name(str);
-				eDebug("AUDIO STRUCT=%s", g_type);
+				//eDebug("AUDIO STRUCT=%s", g_type);
 				audio.type = gstCheckAudioPad(str);
 				audio.language_code = "und";
 				audio.codec = g_type;
@@ -1975,7 +1968,7 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 					}
 					gst_tag_list_free(tags);
 				}
-				eDebug("eServiceMP3::audio stream=%i codec=%s language=%s", i, audio.codec.c_str(), audio.language_code.c_str());
+				//eDebug("eServiceMP3::audio stream=%i codec=%s language=%s", i, audio.codec.c_str(), audio.language_code.c_str());
 				m_audioStreams.push_back(audio);
 				gst_caps_unref(caps);
 			}
@@ -2002,7 +1995,7 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 					gst_tag_list_free(tags);
 				}
 
-				eDebug("eServiceMP3::subtitle stream=%i language=%s codec=%s", i, subs.language_code.c_str(), g_codec ? g_codec : "(null)");
+				//eDebug("eServiceMP3::subtitle stream=%i language=%s codec=%s", i, subs.language_code.c_str(), g_codec ? g_codec : "(null)");
 
 				GstPad* pad = 0;
 				g_signal_emit_by_name (m_gst_playbin, "get-text-pad", i, &pad);
@@ -2133,37 +2126,6 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 				}
 			}
 			break;
-		case GST_MESSAGE_STREAM_STATUS:
-		{
-			GstStreamStatusType type;
-			GstElement *owner;
-			gst_message_parse_stream_status (msg, &type, &owner);
-			if ( type == GST_STREAM_STATUS_TYPE_CREATE && m_sourceinfo.is_streaming )
-			{
-				if ( GST_IS_PAD(source) )
-					owner = gst_pad_get_parent_element(GST_PAD(source));
-				else if ( GST_IS_ELEMENT(source) )
-					owner = GST_ELEMENT(source);
-				else
-					owner = 0;
-				if ( owner )
-				{
-					GstState state;
-					gst_element_get_state(m_gst_playbin, &state, NULL, 0LL);
-					GstElementFactory *factory = gst_element_get_factory(GST_ELEMENT(owner));
-					const gchar *name = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory));
-					if (!strcmp(name, "souphttpsrc") && (state == GST_STATE_READY) && !m_streamingsrc_timeout->isActive())
-					{
-						m_streamingsrc_timeout->start(HTTP_TIMEOUT*1000, true);
-						g_object_set (G_OBJECT (owner), "timeout", HTTP_TIMEOUT, NULL);
-						// eDebug("eServiceMP3::GST_STREAM_STATUS_TYPE_CREATE -> setting timeout on %s to %is", name, HTTP_TIMEOUT);
-					}
-				}
-				if ( GST_IS_PAD(source) )
-					gst_object_unref(owner);
-			}
-			break;
-		}
 		default:
 			break;
 	}
@@ -2247,7 +2209,7 @@ void eServiceMP3::HandleTocEntry(GstMessage *msg)
 				}
 			}
 		}
-		eDebug("[eServiceMP3] TOC entry from source %s processed", GST_MESSAGE_SRC_NAME(msg));
+		//eDebug("[eServiceMP3] TOC entry from source %s processed", GST_MESSAGE_SRC_NAME(msg));
 	}
 	else
 	{
@@ -2263,6 +2225,18 @@ void eServiceMP3::playbinNotifySource(GObject *object, GParamSpec *unused, gpoin
 	g_object_get(object, "source", &source, NULL);
 	if (source)
 	{
+		if (g_object_class_find_property(G_OBJECT_GET_CLASS(source), "timeout") != 0)
+		{
+			GstElementFactory *factory = gst_element_get_factory(source);
+			if (factory)
+			{
+				const gchar *sourcename = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory));
+				if (!strcmp(sourcename, "souphttpsrc"))
+				{
+					g_object_set(G_OBJECT(source), "timeout", HTTP_TIMEOUT, NULL);
+				}
+			}
+		}
 		if (g_object_class_find_property(G_OBJECT_GET_CLASS(source), "ssl-strict") != 0)
 		{
 			g_object_set(G_OBJECT(source), "ssl-strict", FALSE, NULL);
@@ -2526,7 +2500,7 @@ void eServiceMP3::pullSubtitle(GstBuffer *buffer)
 		}
 		gint64 buf_pos = GST_BUFFER_PTS(buffer);
 		size_t len = map.size;
-		eDebug("gst_buffer_get_size %zu map.size %zu", gst_buffer_get_size(buffer), len);
+		// eDebug("gst_buffer_get_size %zu map.size %zu", gst_buffer_get_size(buffer), len);
 #endif
 		gint64 duration_ns = GST_BUFFER_DURATION(buffer);
 		int subType = m_subtitleStreams[m_currentSubtitleStream].type;
