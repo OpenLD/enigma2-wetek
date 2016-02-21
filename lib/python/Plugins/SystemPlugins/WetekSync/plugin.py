@@ -3,7 +3,7 @@
 ##
 ## WetekSync for WetekPlay
 ##
-## Copyright (c) 2012-2015 OpenLD
+## Copyright (c) 2012-2016 OpenLD
 ##          Javier Sayago <admin@lonasdigital.com>
 ## Contact: javilonas@esp-desarrolladores.com
 ##
@@ -24,7 +24,6 @@ from Plugins.Plugin import PluginDescriptor
 from Screens.Screen import Screen
 import os
 from enigma import eTimer
-from time import sleep
 
 class LoopSyncMain(Screen):
 
@@ -34,117 +33,72 @@ class LoopSyncMain(Screen):
 		self.gotSession()
 
 	def gotSession(self):
-		self.debug = 0
-		self.lstate = 0
-		self.count1 = 0
-		self.count2 = 0
-		self.pts_diff_c = 0
-		self.pts_diff_l = 0
+		self.ResetFlag()
 		self.AVSyncTimer = eTimer()
-		self.AVSyncTimer.callback.append(self.updateAVSync)
+		self.AVSyncTimer.callback.append(self.UpdateStatus)
 		self.AVSyncTimer.start(10000, True)
 
-	def updateAVSync(self):
-		self.current_service = self.session.nav.getCurrentlyPlayingServiceReference()
-		pts_diff = 0
-		max_diff = 21000
+	def UpdateStatus(self):
+		frontendDataOrg = ""
+		service1 = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+		if service1:
+			service = self.session.nav.getCurrentService()
+			if service:
+				feinfo = service.frontendInfo()
+				frontendDataOrg = feinfo and feinfo.getAll(True)
+				if frontendDataOrg:		### DVB-S/C/T ###
+					if self.CheckFlag():
+						print "[WetekSync] DoWetekSync !!!"
+						self.AVSyncTimer.start(500, True)
+						self.ResetFlag()
+						try:
+							self.session.open(DoWetekSync,service1)
+						except Exception, e:
+							print "[WetekSync] Can't WetekSync"
+					self.AVSyncTimer.start(100, True)
+					return
+				else:		### IPTV or VOD ###
+					self.ResetFlag()
+					self.AVSyncTimer.start(500, True)
+					return
+			else:
+				self.AVSyncTimer.start(500, True)
+				return
+
+	def CheckFlag(self):
 		try:
-			f = open('/sys/class/tsync/pts_audio', 'r')
-			pts_audio = int(f.read(), 16)
-			f.close()
-			f = open('/sys/class/tsync/pts_video', 'r')
-			pts_video = int(f.read(), 16)
-			f.close()
-			pts_diff = abs(pts_audio - pts_video)
-			f = open('/sys/class/amstream/bufs', 'r')
-			line1 = f.read().replace('\n', '')
-			f.close()
-			strf1 = line1.find('Audio buffer:')
-			strf2 = line1.find('buf bitrate latest:', strf1 + 1)
-			strf3 = line1.find(',avg:', strf2 + 1)
-			strf4 = line1.find('buf time after last pts:', strf3 + 1)
-			bitrate = int(line1[strf3 + 5:strf4 - 4])
-			if bitrate < 110000:
-				max_diff = 40000
-			if self.debug == 1:
-				print '[WetekSync] *************************************'
-				print '[WetekSync] LastState = ', self.lstate
-				print '[WetekSync] pts_diff  = ', pts_diff
-				print '[WetekSync] max_diff  = ', max_diff
-				print '[WetekSync] a_bitrate = ', bitrate
-				print '[WetekSync] Reset(s)  = ', self.count1
-				print '[WetekSync] StopStart = ', self.count2
-				print '[WetekSync] ptsdiff_c = ', self.pts_diff_c
-				print '[WetekSync] *************************************'
+			if int(open("/sys/class/tsync/reset_flag", "r").read(),16) == 1: return True;
 		except Exception as e:
 			print "[WetekSync] Can't read class"
+			self.AVSyncTimer.start(500, True)
+		return False;
 
-		if self.lstate == 1:
-			if self.debug == 1:
-				print '[WetekSync] change_mode (2) !!!'
-			try:
-				f_tmp = open('/sys/class/tsync/mode', 'w')
-				f_tmp.write('2')
-				f_tmp.close()
-			except Exception as e:
-				print "[WetekSync] Can't change mode"
+	def ResetFlag(self):
+		try:
+			open("/sys/class/tsync/reset_flag", "w").write("0")
+		except Exception, e:
+			print "[WetekSync] Can't ResetFlag"
 
-			self.lstate = 0
-			pts_video = 0
-		if self.pts_diff_l > max_diff and pts_diff > max_diff and pts_video != 0 and self.lstate == 0:
-			if self.debug == 1:
-				print '[WetekSync] change_mode (1) !!!'
-			try:
-				f_tmp = open('/sys/class/tsync/mode', 'w')
-				f_tmp.write('1')
-				f_tmp.close()
-			except Exception as e:
-				print "[WetekSync] Can't change mode"
+class DoWetekSync(Screen):
+	skin = '\n\t\t<screen position="center,center" size="1920,1080" title="" >\n\t\t</screen>'
 
-			self.lstate = 1
-			self.count1 += 1
-		if pts_diff > 50000 and pts_video != 0:
-			self.pts_diff_c += 1
-		if pts_diff <= 50000 and pts_video != 0:
-			self.pts_diff_c = 0
-		if self.pts_diff_c > 2:
-			if self.debug == 1:
-				print '[WetekSync] DoAVSync !!!'
-			self.session.open(DoAVSync)
-			self.count2 += 1
-			self.pts_diff_c = 0
-		self.pts_diff_l = pts_diff
-		self.AVSyncTimer.start(700, True)
-
-
-class DoAVSync(Screen):
-	skin = '\n\t\t<screen position="center,center" size="1920,1080" title="WetekSync" >\n\t\t</screen>'
-
-	def __init__(self, session):
+	def __init__(self, session, xxx):
 		Screen.__init__(self, session)
 		try:
-			f_tmp = open('/sys/class/video/blackout_policy', 'w')
-			f_tmp.write('0')
-			f_tmp.close()
+			open("/sys/class/video/blackout_policy", "w").write("0")
 		except Exception as e:
-			print "[WetekSync] Can't change policy"
-
-		self.current_service = self.session.nav.getCurrentlyPlayingServiceReference()
+			print "[WetekSync] Can't change policy(0)"
 		self.session.nav.stopService()
-		self.session.nav.playService(self.current_service)
+		self.session.nav.playService(xxx)
 		try:
-			f_tmp = open('/sys/class/video/blackout_policy', 'w')
-			f_tmp.write('1')
-			f_tmp.close()
+			open("/sys/class/video/blackout_policy", "w").write("1")
 		except Exception as e:
-			print "[WetekSync] Can't change policy"
-
+			print "[WetekSync] Can't change policy(1)"
 		self.close()
 
 
 def sessionstart(session, **kwargs):
 	session.open(LoopSyncMain)
-
 
 def Plugins(**kwargs):
 	return [PluginDescriptor(where=[PluginDescriptor.WHERE_SESSIONSTART], fnc=sessionstart)]
