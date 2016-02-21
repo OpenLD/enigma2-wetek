@@ -46,7 +46,7 @@ eDVBDemux::eDVBDemux(int adapter, int demux):
 	demux(demux),
 	source(-1),
 	m_dvr_busy(0),
-	m_pvr_fd(0)
+	m_pvr_fd(-1)
 {
 }
 
@@ -136,9 +136,9 @@ RESULT eDVBDemux::createTSRecorder(ePtr<iDVBTSRecorder> &recorder, int packetsiz
 RESULT eDVBDemux::getMPEGDecoder(ePtr<iTSMPEGDecoder> &decoder, int index)
 {
 	eDebug("%s() BOXTYPE: %s",__func__,BOXTYPE);
-	if(0 == strcmp(BOXTYPE,"wetekplay"))
+	if(0 == strcmp(BOXTYPE,"wetekplay") || 0 == strcmp(BOXTYPE,"wetekplayplus"))
 	{
-		eDebug("%s() wetekplay detected",__func__);
+		eDebug("%s() wetek detected",__func__);
 		decoder = new eAMLTSMPEGDecoder(this, index);
 	}
 	else
