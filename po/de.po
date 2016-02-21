@@ -1939,6 +1939,9 @@ msgstr "Standard"
 msgid "Reception Settings"
 msgstr "Empfangseinstellungen"
 
+msgid "Reception lists"
+msgstr "Empfangslisten"
+
 msgid "Configure interface"
 msgstr "Netzwerkkarte konfigurieren"
 
@@ -3339,6 +3342,9 @@ msgstr "Experimentell"
 #
 msgid "Expert"
 msgstr "Experte"
+
+msgid "Extended"
+msgstr "Erweitert"
 
 #
 msgid "Extended Networksetup Plugin..."
@@ -14605,12 +14611,11 @@ msgstr "Rechts vom Servicenamen"
 
 #
 msgid ""
-"PowerOff while Recording in progress!\n"
+"Recording(s) are in progress or coming up in few seconds!\n"
 "Entering standby, after recording the box will shutdown."
 msgstr ""
-"Es läuft noch eine Aufnahme, Receiver wird bis zum Ende der\n"
-"\n"
-"Aufnahme in den Stby versetzt und danach heruntergefahren."
+"Zurzeit ist eine/sind Aufnahmen aktiv oder starten gleich!\n"
+"Der Receiver wird jetzt in den Standby versetzt und am Ende der Aufnahme(n) heruntergefahren."
 
 # boot-up action
 msgid "Boot-up action"
@@ -16801,3 +16806,48 @@ msgstr "Video Clipping"
 msgid "clip overscan / letterbox borders"
 msgstr ""
 
+msgid ""
+"\n"
+"<This tuner is configured automatically>"
+msgstr ""
+"\n"
+"<Diese Tuner wird automatisch verwaltet>"
+
+msgid "HDMI Colorspace"
+msgstr "HDMI Farbraum"
+
+msgid "This option allows you can config the Colorspace from Auto to RGB"
+msgstr "Diese Option erlaubt das Umstellen des Farbraums von Auto auf RGB"
+
+msgid "Disable MiniTV"
+msgstr "Entferne MiniTV im Display"
+
+msgid "Enable MiniTV"
+msgstr "Zeige MiniTV im Display"
+
+msgid "Disable FastZapping"
+msgstr "Deaktiviere FastZapping"
+
+msgid "Enable FastZapping"
+msgstr "Aktiviere FastZapping"
+
+msgid "Simple zoom"
+msgstr "Einfacher Zoom"
+
+msgid "Extrude from left"
+msgstr "Verformen nach links"
+
+msgid "Popup"
+msgstr "Aufblenden"
+
+msgid "Slide from left"
+msgstr "Von links Gleiten"
+
+msgid "Slide right to left"
+msgstr "Von rechts nach links"
+
+msgid "Zoom from left"
+msgstr "Zoom von links"
+
+msgid "Zoom from right"
+msgstr "Zoom von rechts"
